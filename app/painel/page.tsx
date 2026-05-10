@@ -24,7 +24,7 @@ export default async function PainelPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">Meu Site</h1>
           <p className="text-sm text-neutral-500 mt-1">
@@ -36,7 +36,7 @@ export default async function PainelPage() {
             href={`/api/site/${tenant.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 transition-colors self-start sm:self-auto"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Ver site publicado

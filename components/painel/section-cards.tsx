@@ -162,7 +162,7 @@ export function SectionCards({ sections: initial, tenantPrimaryColor }: SectionC
             </div>
 
             {/* Visual preview */}
-            <div className="w-28 h-20 flex-shrink-0 border-r border-neutral-100 bg-neutral-50 p-1.5">
+            <div className="w-20 sm:w-28 h-20 flex-shrink-0 border-r border-neutral-100 bg-neutral-50 p-1.5">
               <SectionVisualPreview
                 type={section.sectionType}
                 content={section.content}
@@ -170,27 +170,27 @@ export function SectionCards({ sections: initial, tenantPrimaryColor }: SectionC
               />
             </div>
 
-            {/* Info */}
-            <div className="flex-1 flex items-center justify-between px-5 py-4">
+            {/* Info + actions */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between px-3 sm:px-5 py-3 gap-2">
+              {/* Label + status */}
               <div>
-                <p className="font-semibold text-neutral-900 text-sm">{section.label}</p>
+                <p className="font-semibold text-neutral-900 text-sm leading-tight">{section.label}</p>
                 <p className="text-xs text-neutral-400 mt-0.5">
                   {section.visible ? "Visível no site" : "Oculta do site"}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* Visibility toggle */}
+              {/* Buttons */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleVisible(section.id, section.visible)}
                   disabled={togglingId === section.id}
                   className={cn(
-                    "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors",
+                    "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors whitespace-nowrap",
                     section.visible
                       ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                       : "border-neutral-200 bg-neutral-50 text-neutral-500 hover:bg-neutral-100"
                   )}
-                  title={section.visible ? "Ocultar do site" : "Mostrar no site"}
                 >
                   {section.visible ? (
                     <Eye className="w-3.5 h-3.5" />
@@ -200,10 +200,9 @@ export function SectionCards({ sections: initial, tenantPrimaryColor }: SectionC
                   {section.visible ? "Visível" : "Oculta"}
                 </button>
 
-                {/* Edit button */}
                 <Link
                   href={`/painel/secoes/${section.id}/edit`}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium px-3.5 py-1.5 rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-colors whitespace-nowrap"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   Editar

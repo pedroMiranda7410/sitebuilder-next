@@ -1,0 +1,66 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { corsHeaders, corsOptions } from "@/lib/api-helpers";
+
+export async function GET(
+  _req: Request,
+  { params }: { params: { slug: string } }
+) {
+  const tenant = await prisma.tenant.findFirst({
+    where: { slug: params.slug, active: true },
+    include: {
+      sections: {
+        where: { visible: true },
+        orderBy: { position: "asc" },
+      },
+      events: {
+        where: {
+          registrationOpen: true,
+          OR: [{ eventDate: null }, { eventDate: { gte: new Date() } }],
+        },
+        orderBy: { eventDate: "asc" },
+      },
+    },
+  });
+
+  if (!tenant) {
+    return NextResponse.json({ error: "Not found" }, { status: 404, headers: corsHeaders });
+  }
+
+  return NextResponse.json(
+    {
+      tenant: {
+        slug: tenant.slug,
+        name: tenant.name,
+        theme_primary_color: tenant.themePrimaryColor,
+        theme_secondary_color: tenant.themeSecondaryColor,
+        theme_font: tenant.themeFont,
+        logo_url: tenant.logoUrl,
+        domain: tenant.domain,
+      },
+      sections: tenant.sections.map((s) => ({
+        section_key: s.sectionKey,
+        section_type: s.sectionType,
+        label: s.label,
+        position: s.position,
+        visible: s.visible,
+        content: s.content,
+      })),
+      events: tenant.events.map((e) => ({
+        id: e.id,
+        slug: e.slug,
+        title: e.title,
+        description: e.description,
+        event_date: e.eventDate,
+        location: e.location,
+        cover_image_url: e.coverImageUrl,
+        registration_open: e.registrationOpen,
+      })),
+    },
+    { headers: corsHeaders }
+  );
+}
+
+export function OPTIONS() {
+  return corsOptions();
+}

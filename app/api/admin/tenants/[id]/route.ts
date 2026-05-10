@@ -15,6 +15,7 @@ export async function GET(
     include: {
       sections: { orderBy: { position: "asc" } },
       events: { orderBy: { eventDate: "asc" } },
+      services: { orderBy: { position: "asc" } },
       users: { where: { role: "client" }, select: { id: true, name: true, email: true } },
       _count: { select: { subscribers: true } },
     },

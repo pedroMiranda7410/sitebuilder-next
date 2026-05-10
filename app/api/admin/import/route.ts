@@ -39,6 +39,8 @@ export async function POST(req: Request) {
           logoUrl: t.logoUrl ?? null,
           domain: t.domain ?? null,
           active: true,
+          ...(t.languages ? { languages: t.languages } : {}),
+          ...(t.default_lang ? { defaultLang: t.default_lang } : {}),
         },
         create: {
           slug: t.slug,
@@ -49,6 +51,8 @@ export async function POST(req: Request) {
           logoUrl: t.logoUrl ?? null,
           domain: t.domain ?? null,
           active: true,
+          ...(t.languages ? { languages: t.languages } : {}),
+          ...(t.default_lang ? { defaultLang: t.default_lang } : {}),
         },
       });
 
@@ -125,6 +129,26 @@ export async function POST(req: Request) {
           where: { tenantId_email: { tenantId: tenant.id, email: s.email } },
           update: { active: true, name: s.name ?? undefined },
           create: { tenantId: tenant.id, email: s.email, name: s.name, active: true },
+        });
+      }
+
+      // Services — idempotent on (tenantId, slug)
+      for (let idx = 0; idx < (data.services ?? []).length; idx++) {
+        const s = data.services![idx];
+        await tx.servicePage.upsert({
+          where: { tenantId_slug: { tenantId: tenant.id, slug: s.slug } },
+          update: {
+            position: s.position ?? idx + 1,
+            visible: s.visible ?? true,
+            content: (s.content ?? {}) as object,
+          },
+          create: {
+            tenantId: tenant.id,
+            slug: s.slug,
+            position: s.position ?? idx + 1,
+            visible: s.visible ?? true,
+            content: (s.content ?? {}) as object,
+          },
         });
       }
 

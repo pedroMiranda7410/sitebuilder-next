@@ -24,6 +24,8 @@ export const tenantSchema = z.object({
   themeFont: z.string().default("Inter"),
   logoUrl: z.string().url().optional().nullable(),
   active: z.boolean().default(true),
+  languages: z.array(z.string()).optional(),
+  defaultLang: z.string().optional(),
 });
 
 export const sectionContentSchema = z.object({
@@ -43,6 +45,16 @@ export const eventSchema = z.object({
   registrationOpen: z.boolean().default(false),
 });
 
+export const servicePageSchema = z.object({
+  slug: z
+    .string()
+    .min(1, "Slug obrigatório")
+    .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
+  position: z.number().int().default(0),
+  visible: z.boolean().default(true),
+  content: z.record(z.string(), z.unknown()).default({}),
+});
+
 export const importSchema = z.object({
   tenant: z.object({
     slug: z.string().min(1),
@@ -52,6 +64,8 @@ export const importSchema = z.object({
     themeFont: z.string().optional(),
     logoUrl: z.string().optional().nullable(),
     domain: z.string().optional().nullable(),
+    languages: z.array(z.string()).optional(),
+    default_lang: z.string().optional(),
   }),
   user: z
     .object({
@@ -88,6 +102,16 @@ export const importSchema = z.object({
       z.object({
         email: z.string().email(),
         name: z.string().optional().nullable(),
+      })
+    )
+    .optional(),
+  services: z
+    .array(
+      z.object({
+        slug: z.string().min(1),
+        position: z.number().int().optional(),
+        visible: z.boolean().optional(),
+        content: z.record(z.string(), z.unknown()).optional(),
       })
     )
     .optional(),

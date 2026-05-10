@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Check, Loader2, AlertCircle } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { TranslatableInput } from "@/components/ui/translatable-input";
+import { TranslatableTextarea } from "@/components/ui/translatable-textarea";
+import { t as tField } from "@/lib/i18n";
+import type { TranslatableField } from "@/lib/i18n";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -16,6 +20,15 @@ interface SectionEditorProps {
   tenantPrimaryColor: string;
   tenantSecondaryColor: string;
   tenantFont: string;
+  tenantLanguages?: string[];
+  saveEndpoint?: string;
+}
+
+// Shared props for all section sub-forms
+interface FormProps {
+  content: Record<string, unknown>;
+  onChange: (c: Record<string, unknown>) => void;
+  languages: string[];
 }
 
 // ─── Field helpers ────────────────────────────────────────────────────────────
@@ -119,46 +132,39 @@ function ImageUrlInput({
 
 // ─── Section-specific forms ───────────────────────────────────────────────────
 
-function HeroForm({
-  content,
-  onChange,
-}: {
-  content: Record<string, unknown>;
-  onChange: (c: Record<string, unknown>) => void;
-}) {
-  const set = (key: string, val: string) => onChange({ ...content, [key]: val });
+function HeroForm({ content, onChange, languages }: FormProps) {
+  const set = (key: string, val: TranslatableField | string) =>
+    onChange({ ...content, [key]: val });
 
   return (
     <div className="space-y-5">
-      <Field
+      <TranslatableTextarea
         label="Título principal"
         hint="Este é o texto em destaque no topo do seu site."
-      >
-        <TextArea
-          value={(content.title as string) ?? ""}
-          onChange={(v) => set("title", v)}
-          placeholder="Um Momento Para Você"
-          rows={2}
-          large
-        />
-      </Field>
-      <Field label="Frase de apoio" hint="Uma frase curta abaixo do título.">
-        <TextInput
-          value={(content.subtitle as string) ?? ""}
-          onChange={(v) => set("subtitle", v)}
-          placeholder="Encontre seu caminho de volta para si mesma"
-        />
-      </Field>
+        value={(content.title as TranslatableField) ?? ""}
+        onChange={(v) => set("title", v)}
+        placeholder="Um Momento Para Você"
+        languages={languages}
+        rows={2}
+      />
+      <TranslatableInput
+        label="Frase de apoio"
+        hint="Uma frase curta abaixo do título."
+        value={(content.subtitle as TranslatableField) ?? ""}
+        onChange={(v) => set("subtitle", v)}
+        placeholder="Encontre seu caminho de volta para si mesma"
+        languages={languages}
+      />
       <div>
         <p className="text-sm font-medium text-neutral-600 mb-1.5">Botão de chamada para ação</p>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Texto do botão">
-            <TextInput
-              value={(content.cta_text as string) ?? ""}
-              onChange={(v) => set("cta_text", v)}
-              placeholder="Conhecer Mais"
-            />
-          </Field>
+          <TranslatableInput
+            label="Texto do botão"
+            value={(content.cta_text as TranslatableField) ?? ""}
+            onChange={(v) => set("cta_text", v)}
+            placeholder="Conhecer Mais"
+            languages={languages}
+          />
           <Field label="Destino do botão" hint="Ex: #sobre ou uma URL">
             <TextInput
               value={(content.cta_url as string) ?? ""}
@@ -179,21 +185,15 @@ function HeroForm({
 }
 
 interface Card {
-  title: string;
-  tag: string;
-  description: string;
+  title: TranslatableField;
+  tag: TranslatableField;
+  description: TranslatableField;
   image_url: string;
-  cta: string;
+  cta: TranslatableField;
   cta_url?: string;
 }
 
-function CardsForm({
-  content,
-  onChange,
-}: {
-  content: Record<string, unknown>;
-  onChange: (c: Record<string, unknown>) => void;
-}) {
+function CardsForm({ content, onChange, languages }: FormProps) {
   const cards: Card[] = (content.cards as Card[]) ?? [];
   const [editingIdx, setEditingIdx] = useState<number | "new" | null>(null);
   const [draft, setDraft] = useState<Card>({
@@ -206,7 +206,10 @@ function CardsForm({
   });
 
   function openNew() {
-    setDraft({ title: "", tag: "", description: "", image_url: "", cta: "", cta_url: "" });
+    const empty = languages.length > 1
+      ? Object.fromEntries(languages.map((l) => [l, ""])) as Record<string, string>
+      : "";
+    setDraft({ title: empty, tag: empty, description: empty, image_url: "", cta: empty, cta_url: "" });
     setEditingIdx("new");
   }
 
@@ -216,7 +219,8 @@ function CardsForm({
   }
 
   function saveCard() {
-    if (!draft.title.trim()) return;
+    const titleText = tField(draft.title, languages[0]);
+    if (!titleText.trim()) return;
     let newCards: Card[];
     if (editingIdx === "new") {
       newCards = [...cards, draft];
@@ -234,13 +238,13 @@ function CardsForm({
 
   return (
     <div className="space-y-5">
-      <Field label="Título da seção de serviços">
-        <TextInput
-          value={(content.title as string) ?? ""}
-          onChange={(v) => onChange({ ...content, title: v })}
-          placeholder="O que ofereço"
-        />
-      </Field>
+      <TranslatableInput
+        label="Título da seção de serviços"
+        value={(content.title as TranslatableField) ?? ""}
+        onChange={(v) => onChange({ ...content, title: v })}
+        placeholder="O que ofereço"
+        languages={languages}
+      />
 
       <div>
         <p className="text-sm font-medium text-neutral-600 mb-3">
@@ -256,7 +260,7 @@ function CardsForm({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={card.image_url}
-                  alt={card.title}
+                  alt={tField(card.title, languages[0])}
                   className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                   onError={(e) => (e.currentTarget.style.display = "none")}
                 />
@@ -265,8 +269,8 @@ function CardsForm({
                 <div className="w-10 h-10 rounded-lg bg-neutral-200 flex-shrink-0" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-neutral-900 truncate">{card.title}</p>
-                <p className="text-xs text-neutral-400 truncate">{card.tag}</p>
+                <p className="text-sm font-medium text-neutral-900 truncate">{tField(card.title, languages[0])}</p>
+                <p className="text-xs text-neutral-400 truncate">{tField(card.tag, languages[0])}</p>
               </div>
               <div className="flex gap-1.5">
                 <button
@@ -302,28 +306,28 @@ function CardsForm({
           <p className="text-sm font-semibold text-neutral-900">
             {editingIdx === "new" ? "Novo serviço" : "Editar serviço"}
           </p>
-          <Field label="Nome do serviço *">
-            <TextInput
-              value={draft.title}
-              onChange={(v) => setDraft((d) => ({ ...d, title: v }))}
-              placeholder="Ex: Sessão Individual"
-            />
-          </Field>
-          <Field label="Categoria / Tag">
-            <TextInput
-              value={draft.tag}
-              onChange={(v) => setDraft((d) => ({ ...d, tag: v }))}
-              placeholder="Ex: Terapia Corporal"
-            />
-          </Field>
-          <Field label="Descrição">
-            <TextArea
-              value={draft.description}
-              onChange={(v) => setDraft((d) => ({ ...d, description: v }))}
-              placeholder="Descreva o que é este serviço..."
-              rows={3}
-            />
-          </Field>
+          <TranslatableInput
+            label="Nome do serviço *"
+            value={draft.title}
+            onChange={(v) => setDraft((d) => ({ ...d, title: v }))}
+            placeholder="Ex: Sessão Individual"
+            languages={languages}
+          />
+          <TranslatableInput
+            label="Categoria / Tag"
+            value={draft.tag}
+            onChange={(v) => setDraft((d) => ({ ...d, tag: v }))}
+            placeholder="Ex: Terapia Corporal"
+            languages={languages}
+          />
+          <TranslatableTextarea
+            label="Descrição"
+            value={draft.description}
+            onChange={(v) => setDraft((d) => ({ ...d, description: v }))}
+            placeholder="Descreva o que é este serviço..."
+            languages={languages}
+            rows={3}
+          />
           <ImageUrlInput
             label="Foto do serviço"
             hint="Cole o link de uma imagem"
@@ -331,13 +335,13 @@ function CardsForm({
             onChange={(v) => setDraft((d) => ({ ...d, image_url: v }))}
           />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Texto do botão">
-              <TextInput
-                value={draft.cta}
-                onChange={(v) => setDraft((d) => ({ ...d, cta: v }))}
-                placeholder="Agendar sessão"
-              />
-            </Field>
+            <TranslatableInput
+              label="Texto do botão"
+              value={draft.cta}
+              onChange={(v) => setDraft((d) => ({ ...d, cta: v }))}
+              placeholder="Agendar sessão"
+              languages={languages}
+            />
             <Field label="Link do botão">
               <TextInput
                 value={draft.cta_url ?? ""}
@@ -355,7 +359,7 @@ function CardsForm({
             </button>
             <button
               onClick={saveCard}
-              disabled={!draft.title.trim()}
+              disabled={!tField(draft.title, languages[0]).trim()}
               className="flex-1 py-2 text-sm font-medium bg-neutral-950 text-white rounded-xl hover:bg-neutral-800 transition-colors disabled:opacity-40"
             >
               Salvar serviço
@@ -367,21 +371,18 @@ function CardsForm({
   );
 }
 
-function AboutForm({
-  content,
-  onChange,
-}: {
-  content: Record<string, unknown>;
-  onChange: (c: Record<string, unknown>) => void;
-}) {
-  const set = (key: string, val: string | string[]) => onChange({ ...content, [key]: val });
-  const paragraphs: string[] = (content.paragraphs as string[]) ?? ["", "", ""];
+function AboutForm({ content, onChange, languages }: FormProps) {
+  const set = (key: string, val: TranslatableField | string | string[]) =>
+    onChange({ ...content, [key]: val });
 
-  function setParagraph(idx: number, val: string) {
-    const newP = [...paragraphs];
+  // paragraphs can be string[] or Record<string,string>[] for i18n
+  const paragraphs = (content.paragraphs as TranslatableField[]) ?? ["", "", ""];
+
+  function setParagraph(idx: number, val: TranslatableField) {
+    const newP = [...paragraphs] as TranslatableField[];
     while (newP.length <= idx) newP.push("");
     newP[idx] = val;
-    set("paragraphs", newP);
+    set("paragraphs", newP as unknown as string[]);
   }
 
   return (
@@ -392,52 +393,52 @@ function AboutForm({
         value={(content.photo_url as string) ?? ""}
         onChange={(v) => set("photo_url", v)}
       />
-      <Field label="Título da seção">
-        <TextInput
-          value={(content.title as string) ?? ""}
-          onChange={(v) => set("title", v)}
-          placeholder="Sobre Mim"
-        />
-      </Field>
-      <Field label="Label acima do título">
-        <TextInput
-          value={(content.label as string) ?? ""}
-          onChange={(v) => set("label", v)}
-          placeholder="Minha história"
-        />
-      </Field>
-      <Field label="Primeiro parágrafo">
-        <TextArea
-          value={paragraphs[0] ?? ""}
-          onChange={(v) => setParagraph(0, v)}
-          placeholder="Fale sobre sua trajetória..."
-          rows={4}
-        />
-      </Field>
-      <Field label="Segundo parágrafo">
-        <TextArea
-          value={paragraphs[1] ?? ""}
-          onChange={(v) => setParagraph(1, v)}
-          placeholder="Continue sua história..."
-          rows={3}
-        />
-      </Field>
-      <Field label="Terceiro parágrafo">
-        <TextArea
-          value={paragraphs[2] ?? ""}
-          onChange={(v) => setParagraph(2, v)}
-          placeholder="Conclusão ou convite..."
-          rows={3}
-        />
-      </Field>
+      <TranslatableInput
+        label="Título da seção"
+        value={(content.title as TranslatableField) ?? ""}
+        onChange={(v) => set("title", v)}
+        placeholder="Sobre Mim"
+        languages={languages}
+      />
+      <TranslatableInput
+        label="Label acima do título"
+        value={(content.label as TranslatableField) ?? ""}
+        onChange={(v) => set("label", v)}
+        placeholder="Minha história"
+        languages={languages}
+      />
+      <TranslatableTextarea
+        label="Primeiro parágrafo"
+        value={paragraphs[0] ?? ""}
+        onChange={(v) => setParagraph(0, v)}
+        placeholder="Fale sobre sua trajetória..."
+        languages={languages}
+        rows={4}
+      />
+      <TranslatableTextarea
+        label="Segundo parágrafo"
+        value={paragraphs[1] ?? ""}
+        onChange={(v) => setParagraph(1, v)}
+        placeholder="Continue sua história..."
+        languages={languages}
+        rows={3}
+      />
+      <TranslatableTextarea
+        label="Terceiro parágrafo"
+        value={paragraphs[2] ?? ""}
+        onChange={(v) => setParagraph(2, v)}
+        placeholder="Conclusão ou convite..."
+        languages={languages}
+        rows={3}
+      />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Texto do botão principal">
-          <TextInput
-            value={(content.cta_primary as string) ?? ""}
-            onChange={(v) => set("cta_primary", v)}
-            placeholder="Agendar conversa"
-          />
-        </Field>
+        <TranslatableInput
+          label="Texto do botão principal"
+          value={(content.cta_primary as TranslatableField) ?? ""}
+          onChange={(v) => set("cta_primary", v)}
+          placeholder="Agendar conversa"
+          languages={languages}
+        />
         <Field label="Para onde leva">
           <TextInput
             value={(content.cta_primary_url as string) ?? ""}
@@ -447,13 +448,13 @@ function AboutForm({
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Texto do link secundário">
-          <TextInput
-            value={(content.cta_secondary as string) ?? ""}
-            onChange={(v) => set("cta_secondary", v)}
-            placeholder="Ler no Medium"
-          />
-        </Field>
+        <TranslatableInput
+          label="Texto do link secundário"
+          value={(content.cta_secondary as TranslatableField) ?? ""}
+          onChange={(v) => set("cta_secondary", v)}
+          placeholder="Ler no Medium"
+          languages={languages}
+        />
         <Field label="Para onde leva">
           <TextInput
             value={(content.cta_secondary_url as string) ?? ""}
@@ -466,39 +467,34 @@ function AboutForm({
   );
 }
 
-function TextForm({
-  content,
-  onChange,
-}: {
-  content: Record<string, unknown>;
-  onChange: (c: Record<string, unknown>) => void;
-}) {
-  const set = (key: string, val: string) => onChange({ ...content, [key]: val });
+function TextForm({ content, onChange, languages }: FormProps) {
+  const set = (key: string, val: TranslatableField | string) =>
+    onChange({ ...content, [key]: val });
 
   return (
     <div className="space-y-5">
-      <Field label="Título">
-        <TextInput
-          value={(content.title as string) ?? ""}
-          onChange={(v) => set("title", v)}
-          placeholder="Título desta seção"
-        />
-      </Field>
-      <Field label="Label acima do título">
-        <TextInput
-          value={(content.label as string) ?? ""}
-          onChange={(v) => set("label", v)}
-          placeholder="Ex: Bem-vinda"
-        />
-      </Field>
-      <Field label="Primeiro parágrafo">
-        <TextArea
-          value={(content.body as string) ?? ""}
-          onChange={(v) => set("body", v)}
-          placeholder="Escreva o texto desta seção..."
-          rows={5}
-        />
-      </Field>
+      <TranslatableInput
+        label="Título"
+        value={(content.title as TranslatableField) ?? ""}
+        onChange={(v) => set("title", v)}
+        placeholder="Título desta seção"
+        languages={languages}
+      />
+      <TranslatableInput
+        label="Label acima do título"
+        value={(content.label as TranslatableField) ?? ""}
+        onChange={(v) => set("label", v)}
+        placeholder="Ex: Bem-vinda"
+        languages={languages}
+      />
+      <TranslatableTextarea
+        label="Primeiro parágrafo"
+        value={(content.body as TranslatableField) ?? ""}
+        onChange={(v) => set("body", v)}
+        placeholder="Escreva o texto desta seção..."
+        languages={languages}
+        rows={5}
+      />
       <ImageUrlInput
         label="Foto lateral (opcional)"
         hint="Aparece ao lado do texto"
@@ -506,13 +502,13 @@ function TextForm({
         onChange={(v) => set("photo_url", v)}
       />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Texto do link">
-          <TextInput
-            value={(content.cta_text as string) ?? ""}
-            onChange={(v) => set("cta_text", v)}
-            placeholder="Saiba mais"
-          />
-        </Field>
+        <TranslatableInput
+          label="Texto do link"
+          value={(content.cta_text as TranslatableField) ?? ""}
+          onChange={(v) => set("cta_text", v)}
+          placeholder="Saiba mais"
+          languages={languages}
+        />
         <Field label="Para onde leva">
           <TextInput
             value={(content.cta_url as string) ?? ""}
@@ -525,45 +521,35 @@ function TextForm({
   );
 }
 
-function CitacaoForm({
-  content,
-  onChange,
-}: {
-  content: Record<string, unknown>;
-  onChange: (c: Record<string, unknown>) => void;
-}) {
-  const set = (key: string, val: string) => onChange({ ...content, [key]: val });
+function CitacaoForm({ content, onChange, languages }: FormProps) {
+  const set = (key: string, val: TranslatableField | string) =>
+    onChange({ ...content, [key]: val });
 
   return (
     <div className="space-y-5">
-      <Field label="A frase" hint="Uma citação especial para inspirar os visitantes">
-        <TextArea
-          value={(content.text as string) ?? ""}
-          onChange={(v) => set("text", v)}
-          placeholder="O corpo não mente. Ele guarda, ele fala..."
-          rows={4}
-          large
-        />
-      </Field>
-      <Field label="Autor">
-        <TextInput
-          value={(content.author as string) ?? ""}
-          onChange={(v) => set("author", v)}
-          placeholder="Seu nome"
-        />
-      </Field>
+      <TranslatableTextarea
+        label="A frase"
+        hint="Uma citação especial para inspirar os visitantes"
+        value={(content.text as TranslatableField) ?? ""}
+        onChange={(v) => set("text", v)}
+        placeholder="O corpo não mente. Ele guarda, ele fala..."
+        languages={languages}
+        rows={4}
+      />
+      <TranslatableInput
+        label="Autor"
+        value={(content.author as TranslatableField) ?? ""}
+        onChange={(v) => set("author", v)}
+        placeholder="Seu nome"
+        languages={languages}
+      />
     </div>
   );
 }
 
-function FormSectionForm({
-  content,
-  onChange,
-}: {
-  content: Record<string, unknown>;
-  onChange: (c: Record<string, unknown>) => void;
-}) {
-  const set = (key: string, val: string) => onChange({ ...content, [key]: val });
+function FormSectionForm({ content, onChange, languages }: FormProps) {
+  const set = (key: string, val: TranslatableField | string) =>
+    onChange({ ...content, [key]: val });
 
   const getSocialLink = (label: string): string => {
     const links = (content.social_links as { url: string; label: string }[]) ?? [];
@@ -579,28 +565,29 @@ function FormSectionForm({
 
   return (
     <div className="space-y-5">
-      <Field label="Título">
-        <TextInput
-          value={(content.title as string) ?? ""}
-          onChange={(v) => set("title", v)}
-          placeholder="Entre em Contato"
-        />
-      </Field>
-      <Field label="Label acima do título">
-        <TextInput
-          value={(content.label as string) ?? ""}
-          onChange={(v) => set("label", v)}
-          placeholder="Vamos conversar"
-        />
-      </Field>
-      <Field label="Mensagem de abertura" hint="Texto convidativo antes do formulário">
-        <TextArea
-          value={(content.subtitle as string) ?? ""}
-          onChange={(v) => set("subtitle", v)}
-          placeholder="Se você sentiu um chamado ao ler estas palavras..."
-          rows={3}
-        />
-      </Field>
+      <TranslatableInput
+        label="Título"
+        value={(content.title as TranslatableField) ?? ""}
+        onChange={(v) => set("title", v)}
+        placeholder="Entre em Contato"
+        languages={languages}
+      />
+      <TranslatableInput
+        label="Label acima do título"
+        value={(content.label as TranslatableField) ?? ""}
+        onChange={(v) => set("label", v)}
+        placeholder="Vamos conversar"
+        languages={languages}
+      />
+      <TranslatableTextarea
+        label="Mensagem de abertura"
+        hint="Texto convidativo antes do formulário"
+        value={(content.subtitle as TranslatableField) ?? ""}
+        onChange={(v) => set("subtitle", v)}
+        placeholder="Se você sentiu um chamado ao ler estas palavras..."
+        languages={languages}
+        rows={3}
+      />
       <Field label="Seu email para receber as mensagens">
         <TextInput
           value={(content.email_destino as string) ?? ""}
@@ -644,13 +631,17 @@ function LivePreview({
   primaryColor,
   secondaryColor,
   font,
+  lang,
 }: {
   type: string;
   content: Record<string, unknown>;
   primaryColor: string;
   secondaryColor: string;
   font: string;
+  lang: string;
 }) {
+  const tv = (field: unknown) => tField(field as TranslatableField, lang);
+
   switch (type) {
     case "hero": {
       const bgUrl = content.background_image_url as string;
@@ -670,17 +661,17 @@ function LivePreview({
           )}
           <div className="relative">
             <p className="text-2xl font-bold text-white leading-snug whitespace-pre-line">
-              {(content.title as string) || "Título principal"}
+              {tv(content.title) || "Título principal"}
             </p>
             <p className="text-sm text-white/80 mt-1">
-              {(content.subtitle as string) || "Frase de apoio"}
+              {tv(content.subtitle) || "Frase de apoio"}
             </p>
-            {(content.cta_text as string) && (
+            {tv(content.cta_text) && (
               <div
                 className="mt-3 inline-block px-4 py-2 rounded-lg text-sm font-medium"
                 style={{ backgroundColor: secondaryColor, color: primaryColor }}
               >
-                {content.cta_text as string}
+                {tv(content.cta_text)}
               </div>
             )}
           </div>
@@ -689,10 +680,10 @@ function LivePreview({
     }
 
     case "cards": {
-      const cards = (content.cards as { title: string; tag: string; image_url: string }[]) ?? [];
+      const cards = (content.cards as Card[]) ?? [];
       return (
         <div className="rounded-2xl bg-neutral-50 p-4" style={{ fontFamily: font }}>
-          <p className="text-xs text-neutral-400 mb-1">{content.title as string}</p>
+          <p className="text-xs text-neutral-400 mb-1">{tv(content.title)}</p>
           <div className="grid grid-cols-2 gap-2">
             {cards.slice(0, 4).map((c, i) => (
               <div key={i} className="rounded-xl bg-white border border-neutral-200 overflow-hidden">
@@ -700,7 +691,7 @@ function LivePreview({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={c.image_url}
-                    alt={c.title}
+                    alt={tv(c.title)}
                     className="w-full h-16 object-cover"
                     onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
                   />
@@ -708,8 +699,8 @@ function LivePreview({
                   <div className="w-full h-16 bg-neutral-100" />
                 )}
                 <div className="p-2">
-                  <p className="text-[10px] text-neutral-400">{c.tag}</p>
-                  <p className="text-xs font-medium text-neutral-900">{c.title}</p>
+                  <p className="text-[10px] text-neutral-400">{tv(c.tag)}</p>
+                  <p className="text-xs font-medium text-neutral-900">{tv(c.title)}</p>
                 </div>
               </div>
             ))}
@@ -724,7 +715,7 @@ function LivePreview({
     }
 
     case "about": {
-      const paragraphs = (content.paragraphs as string[]) ?? [];
+      const paragraphs = (content.paragraphs as TranslatableField[]) ?? [];
       return (
         <div className="rounded-2xl bg-white border border-neutral-100 p-5 flex gap-4" style={{ fontFamily: font }}>
           {(content.photo_url as string)?.startsWith("http") ? (
@@ -741,10 +732,10 @@ function LivePreview({
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-neutral-400 mb-0.5">{content.label as string}</p>
-            <p className="text-sm font-bold text-neutral-900 mb-2">{(content.title as string) || "Sobre Mim"}</p>
+            <p className="text-xs text-neutral-400 mb-0.5">{tv(content.label)}</p>
+            <p className="text-sm font-bold text-neutral-900 mb-2">{tv(content.title) || "Sobre Mim"}</p>
             <p className="text-xs text-neutral-600 leading-relaxed line-clamp-5">
-              {paragraphs[0] || "Seu texto aparece aqui..."}
+              {tv(paragraphs[0]) || "Seu texto aparece aqui..."}
             </p>
           </div>
         </div>
@@ -760,10 +751,10 @@ function LivePreview({
         >
           <p className="text-3xl text-white/30 mb-2">"</p>
           <p className="text-base text-white leading-relaxed italic">
-            {(content.text as string) || "A frase aparece aqui..."}
+            {tv(content.text) || "A frase aparece aqui..."}
           </p>
-          {(content.author as string) && (
-            <p className="text-sm text-white/60 mt-3">— {content.author as string}</p>
+          {tv(content.author) && (
+            <p className="text-sm text-white/60 mt-3">— {tv(content.author)}</p>
           )}
         </div>
       );
@@ -772,10 +763,10 @@ function LivePreview({
       return (
         <div className="rounded-2xl bg-white border border-neutral-100 p-5 flex gap-4" style={{ fontFamily: font }}>
           <div className="flex-1">
-            <p className="text-xs text-neutral-400 mb-0.5">{content.label as string}</p>
-            <p className="text-sm font-bold text-neutral-900 mb-2">{(content.title as string) || "Título"}</p>
+            <p className="text-xs text-neutral-400 mb-0.5">{tv(content.label)}</p>
+            <p className="text-sm font-bold text-neutral-900 mb-2">{tv(content.title) || "Título"}</p>
             <p className="text-xs text-neutral-600 leading-relaxed line-clamp-6">
-              {(content.body as string) || "Seu texto aparece aqui..."}
+              {tv(content.body) || "Seu texto aparece aqui..."}
             </p>
           </div>
           {(content.photo_url as string)?.startsWith("http") && (
@@ -792,8 +783,8 @@ function LivePreview({
     case "form":
       return (
         <div className="rounded-2xl bg-neutral-50 p-5" style={{ fontFamily: font }}>
-          <p className="text-xs text-neutral-400 mb-0.5">{content.label as string}</p>
-          <p className="text-sm font-bold text-neutral-900 mb-3">{(content.title as string) || "Entre em Contato"}</p>
+          <p className="text-xs text-neutral-400 mb-0.5">{tv(content.label)}</p>
+          <p className="text-sm font-bold text-neutral-900 mb-3">{tv(content.title) || "Entre em Contato"}</p>
           <div className="space-y-2">
             {["Nome", "Email", "Mensagem"].map((f) => (
               <div key={f} className="h-8 rounded-lg border border-neutral-200 bg-white px-3 flex items-center">
@@ -829,6 +820,8 @@ export function SectionEditor({
   tenantPrimaryColor,
   tenantSecondaryColor,
   tenantFont,
+  tenantLanguages = ["pt"],
+  saveEndpoint,
 }: SectionEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [previewContent, setPreviewContent] = useState(initialContent);
@@ -851,7 +844,7 @@ export function SectionEditor({
     async function save() {
       setSaveStatus("saving");
       try {
-        const res = await fetch(`/api/painel/sections/${sectionId}`, {
+        const res = await fetch(saveEndpoint ?? `/api/painel/sections/${sectionId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: debouncedContent }),
@@ -865,7 +858,7 @@ export function SectionEditor({
     save();
   }, [debouncedContent, sectionId]);
 
-  const formProps = { content, onChange: setContent };
+  const formProps: FormProps = { content, onChange: setContent, languages: tenantLanguages };
 
   function renderForm() {
     switch (sectionType) {
@@ -932,6 +925,7 @@ export function SectionEditor({
             primaryColor={tenantPrimaryColor}
             secondaryColor={tenantSecondaryColor}
             font={tenantFont}
+            lang={tenantLanguages[0] ?? "pt"}
           />
           <p className="text-[10px] text-neutral-300 text-center mt-3">
             Atualiza automaticamente enquanto você edita

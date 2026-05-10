@@ -29,6 +29,8 @@ export default async function ConfiguracoesPage() {
       tenantSlug={tenant.slug}
       userEmail={session.user.email ?? ""}
       userId={session.user.id}
+      initialLanguages={tenant.languages}
+      initialDefaultLang={tenant.defaultLang}
     />
   );
 }

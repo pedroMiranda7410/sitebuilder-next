@@ -19,6 +19,10 @@ export async function GET(
         },
         orderBy: { eventDate: "asc" },
       },
+      services: {
+        where: { visible: true },
+        orderBy: { position: "asc" },
+      },
     },
   });
 
@@ -36,6 +40,8 @@ export async function GET(
         theme_font: tenant.themeFont,
         logo_url: tenant.logoUrl,
         domain: tenant.domain,
+        languages: tenant.languages,
+        default_lang: tenant.defaultLang,
       },
       sections: tenant.sections.map((s) => ({
         section_key: s.sectionKey,
@@ -54,6 +60,12 @@ export async function GET(
         location: e.location,
         cover_image_url: e.coverImageUrl,
         registration_open: e.registrationOpen,
+      })),
+      services: tenant.services.map((s) => ({
+        id: s.id,
+        slug: s.slug,
+        position: s.position,
+        content: s.content,
       })),
     },
     { headers: corsHeaders }

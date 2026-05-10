@@ -60,10 +60,13 @@ model Tenant {
   themeFont           String                 @default("Inter")
   logoUrl             String?
   active              Boolean                @default(true)
+  languages           String[]               @default(["pt"])
+  defaultLang         String                 @default("pt")
   users               User[]
   sections            Section[]
   events              SiteEvent[]
   subscribers         NewsletterSubscriber[]
+  services            ServicePage[]
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
 }
@@ -123,4 +126,18 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 
   @@unique([tenantId, email])
+}
+
+model ServicePage {
+  id        String   @id @default(cuid())
+  tenantId  String
+  slug      String
+  position  Int      @default(0)
+  visible   Boolean  @default(true)
+  content   Json     @default("{}")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, slug])
 }

@@ -5,31 +5,27 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { SectionEditor } from "@/components/painel/section-editor";
 
-export default async function EditSecaoPage({
+export default async function AdminEditSecaoPage({
   params,
 }: {
   params: { id: string };
 }) {
   const session = await auth();
-  if (!session || session.user.role !== "client") redirect("/login");
+  if (!session || session.user.role !== "admin") redirect("/login");
 
-  const section = await prisma.section.findFirst({
-    where: { id: params.id, tenantId: session.user.tenantId ?? undefined },
-  });
+  const section = await prisma.section.findUnique({ where: { id: params.id } });
   if (!section) notFound();
 
-  const tenant = session.user.tenantId
-    ? await prisma.tenant.findUnique({ where: { id: session.user.tenantId } })
-    : null;
+  const tenant = await prisma.tenant.findUnique({ where: { id: section.tenantId } });
 
   return (
     <div>
       <Link
-        href="/painel"
+        href={`/admin/tenants/${section.tenantId}`}
         className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors mb-5"
       >
         <ChevronLeft className="w-3.5 h-3.5" />
-        Meu Site
+        {tenant?.name ?? "Tenant"}
       </Link>
 
       <div className="mb-6">
@@ -48,6 +44,7 @@ export default async function EditSecaoPage({
         tenantSecondaryColor={tenant?.themeSecondaryColor ?? "#ffffff"}
         tenantFont={tenant?.themeFont ?? "Inter"}
         tenantLanguages={tenant?.languages ?? ["pt"]}
+        saveEndpoint={`/api/admin/sections/${section.id}`}
       />
     </div>
   );

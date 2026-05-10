@@ -82,7 +82,7 @@ export function TenantTabs({ sections, events, users, tenantId }: TenantTabsProp
                 {section.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </div>
               <Link
-                href={`/painel/secoes/${section.id}/edit`}
+                href={`/admin/secoes/${section.id}/edit`}
                 className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-neutral-300 rounded-lg text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
               >
                 <Pencil className="w-3 h-3" />

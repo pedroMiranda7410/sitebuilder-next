@@ -13,6 +13,12 @@ const FONTS = [
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+const SUPPORTED_LANGUAGES = [
+  { code: "pt", label: "Português (PT)" },
+  { code: "en", label: "Inglês (EN)" },
+  { code: "es", label: "Espanhol (ES)" },
+];
+
 interface ConfiguracoesClientProps {
   tenantId: string;
   initialPrimaryColor: string;
@@ -23,6 +29,8 @@ interface ConfiguracoesClientProps {
   tenantSlug: string;
   userEmail: string;
   userId: string;
+  initialLanguages: string[];
+  initialDefaultLang: string;
 }
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
@@ -54,6 +62,8 @@ export function ConfiguracoesClient({
   tenantSlug,
   userEmail,
   userId,
+  initialLanguages,
+  initialDefaultLang,
 }: ConfiguracoesClientProps) {
   const [primaryColor, setPrimaryColor] = useState(initialPrimaryColor);
   const [secondaryColor, setSecondaryColor] = useState(initialSecondaryColor);
@@ -61,12 +71,39 @@ export function ConfiguracoesClient({
   const [domain, setDomain] = useState(initialDomain ?? "");
   const [themeStatus, setThemeStatus] = useState<SaveStatus>("idle");
 
+  const [languages, setLanguages] = useState<string[]>(initialLanguages);
+  const [defaultLang, setDefaultLang] = useState(initialDefaultLang);
+  const [langStatus, setLangStatus] = useState<SaveStatus>("idle");
+
   const [email, setEmail] = useState(userEmail);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [accessStatus, setAccessStatus] = useState<SaveStatus>("idle");
   const [accessError, setAccessError] = useState("");
+
+  function toggleLanguage(code: string) {
+    if (code === defaultLang) return; // cannot deactivate default
+    setLanguages((prev) =>
+      prev.includes(code) ? prev.filter((l) => l !== code) : [...prev, code]
+    );
+  }
+
+  async function saveLanguages() {
+    if (languages.length === 0) return;
+    setLangStatus("saving");
+    try {
+      const res = await fetch("/api/painel/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ languages, defaultLang }),
+      });
+      setLangStatus(res.ok ? "saved" : "error");
+    } catch {
+      setLangStatus("error");
+    }
+    setTimeout(() => setLangStatus("idle"), 3000);
+  }
 
   async function saveTheme() {
     setThemeStatus("saving");
@@ -290,6 +327,88 @@ export function ConfiguracoesClient({
               className="px-4 py-2 text-sm font-medium bg-neutral-950 text-white rounded-xl hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
               Salvar domínio
+            </button>
+          </div>
+        </div>
+
+        {/* Idiomas */}
+        <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-neutral-900">Idiomas do site</h2>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                Controle em quais idiomas o conteúdo do seu site é exibido
+              </p>
+            </div>
+            <SaveIndicator status={langStatus} />
+          </div>
+          <div className="p-6 space-y-5 max-w-sm">
+            <div>
+              <p className="text-sm font-medium text-neutral-600 mb-3">Idiomas ativos</p>
+              <div className="space-y-2">
+                {SUPPORTED_LANGUAGES.map(({ code, label }) => {
+                  const isActive = languages.includes(code);
+                  const isDefault = code === defaultLang;
+                  return (
+                    <label
+                      key={code}
+                      className="flex items-center gap-3 cursor-pointer select-none"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isActive}
+                        onChange={() => toggleLanguage(code)}
+                        disabled={isDefault}
+                        className="w-4 h-4 rounded border-neutral-300 accent-neutral-900 disabled:opacity-40"
+                      />
+                      <span className="text-sm text-neutral-800">
+                        {label}
+                        {isDefault && (
+                          <span className="ml-2 text-xs text-neutral-400">— padrão</span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-600 mb-1.5">
+                Idioma padrão
+              </label>
+              <select
+                value={defaultLang}
+                onChange={(e) => {
+                  const code = e.target.value;
+                  setDefaultLang(code);
+                  if (!languages.includes(code)) {
+                    setLanguages((prev) => [...prev, code]);
+                  }
+                }}
+                className="w-full h-10 px-3 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 bg-white"
+              >
+                {SUPPORTED_LANGUAGES.filter(({ code }) => languages.includes(code)).map(
+                  ({ code, label }) => (
+                    <option key={code} value={code}>
+                      {label}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+
+            <p className="text-xs text-neutral-400">
+              Ao ativar um novo idioma, você precisará preencher as traduções em cada seção e
+              serviço.
+            </p>
+
+            <button
+              onClick={saveLanguages}
+              disabled={langStatus === "saving"}
+              className="w-full py-2.5 text-sm font-medium bg-neutral-950 text-white rounded-xl hover:bg-neutral-800 transition-colors disabled:opacity-50"
+            >
+              {langStatus === "saving" ? "Salvando..." : "Salvar idiomas"}
             </button>
           </div>
         </div>

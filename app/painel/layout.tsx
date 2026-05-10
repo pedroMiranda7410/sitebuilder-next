@@ -18,7 +18,8 @@ export default async function PainelLayout({
 
   async function handleSignOut() {
     "use server";
-    await signOut({ redirectTo: "/login" });
+    await signOut({ redirect: false });
+    redirect("/login");
   }
 
   return (

@@ -13,7 +13,8 @@ export default async function AdminLayout({
 
   async function handleSignOut() {
     "use server";
-    await signOut({ redirectTo: "/login" });
+    await signOut({ redirect: false });
+    redirect("/login");
   }
 
   return (

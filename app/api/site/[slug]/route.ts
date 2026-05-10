@@ -10,7 +10,6 @@ export async function GET(
     where: { slug: params.slug, active: true },
     include: {
       sections: {
-        where: { visible: true },
         orderBy: { position: "asc" },
       },
       events: {

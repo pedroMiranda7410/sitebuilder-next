@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Calendar, MapPin, Users, Plus, X, ToggleLeft, ToggleRight, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -233,7 +232,6 @@ function EventModal({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function EventosClient({ events: initial }: EventosClientProps) {
-  const router = useRouter();
   const [events, setEvents] = useState(initial);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Evento | null>(null);
@@ -249,7 +247,21 @@ export function EventosClient({ events: initial }: EventosClientProps) {
       const d = await res.json();
       throw new Error(d.error ?? "Erro ao criar evento");
     }
-    router.refresh();
+    const created = await res.json();
+    setEvents((prev) => [
+      ...prev,
+      {
+        id: created.id,
+        title: created.title,
+        slug: created.slug,
+        description: created.description ?? null,
+        eventDate: created.eventDate ?? null,
+        location: created.location ?? null,
+        coverImageUrl: created.coverImageUrl ?? null,
+        registrationOpen: created.registrationOpen ?? false,
+        _count: { signups: 0 },
+      },
+    ]);
   }
 
   async function handleEdit(data: Record<string, unknown>) {

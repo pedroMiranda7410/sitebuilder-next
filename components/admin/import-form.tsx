@@ -129,7 +129,7 @@ export function ImportForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="bg-white rounded-xl border border-neutral-200 p-5">
-          <label className="block text-sm font-medium text-neutral-700 mb-3">
+          <label className="block text-sm font-medium text-neutral-600 mb-3">
             JSON de importação
           </label>
           <textarea

@@ -152,7 +152,7 @@ export function ConfiguracoesClient({
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-sm font-medium text-neutral-600 mb-2">
                     Cor principal
                   </label>
                   <div className="flex items-center gap-3">
@@ -166,7 +166,7 @@ export function ConfiguracoesClient({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-sm font-medium text-neutral-600 mb-2">
                     Cor de destaque
                   </label>
                   <div className="flex items-center gap-3">
@@ -182,7 +182,7 @@ export function ConfiguracoesClient({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Fonte</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-2">Fonte</label>
                 <select
                   value={font}
                   onChange={(e) => setFont(e.target.value)}
@@ -259,7 +259,7 @@ export function ConfiguracoesClient({
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+              <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                 Seu domínio
               </label>
               <input
@@ -308,7 +308,7 @@ export function ConfiguracoesClient({
               <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{accessError}</p>
             )}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-neutral-600 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
@@ -317,7 +317,7 @@ export function ConfiguracoesClient({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+              <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                 Senha atual
               </label>
               <div className="relative">
@@ -338,7 +338,7 @@ export function ConfiguracoesClient({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+              <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                 Nova senha{" "}
                 <span className="text-neutral-400 font-normal">(deixe vazio para não alterar)</span>
               </label>

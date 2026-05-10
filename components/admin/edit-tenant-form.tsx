@@ -107,7 +107,7 @@ export function EditTenantForm({
             <h2 className="text-sm font-semibold text-neutral-700 mb-4">Dados do cliente</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Nome</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">Nome</label>
                 <input
                   type="text"
                   value={name}
@@ -117,7 +117,7 @@ export function EditTenantForm({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Slug</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">Slug</label>
                 <div className="flex items-center h-9 px-3 text-sm rounded-lg border border-neutral-100 bg-neutral-50 text-neutral-500">
                   <span className="text-neutral-400 mr-1">/</span>
                   <span>{initialSlug}</span>
@@ -125,7 +125,7 @@ export function EditTenantForm({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Domínio</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">Domínio</label>
                 <input
                   type="text"
                   value={domain}
@@ -135,7 +135,7 @@ export function EditTenantForm({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Logo (URL)</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">Logo (URL)</label>
                 <input
                   type="text"
                   value={logoUrl}
@@ -146,7 +146,7 @@ export function EditTenantForm({
               </div>
               <div className="flex items-center justify-between pt-1">
                 <div>
-                  <p className="text-sm font-medium text-neutral-700">Status ativo</p>
+                  <p className="text-sm font-medium text-neutral-600">Status ativo</p>
                   <p className="text-xs text-neutral-400">Cliente consegue acessar o painel</p>
                 </div>
                 <button
@@ -172,7 +172,7 @@ export function EditTenantForm({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">Cor primária</label>
+                  <label className="block text-sm font-medium text-neutral-600 mb-1.5">Cor primária</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -184,7 +184,7 @@ export function EditTenantForm({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">Cor secundária</label>
+                  <label className="block text-sm font-medium text-neutral-600 mb-1.5">Cor secundária</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -197,7 +197,7 @@ export function EditTenantForm({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Fonte</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">Fonte</label>
                 <select
                   value={font}
                   onChange={(e) => setFont(e.target.value)}

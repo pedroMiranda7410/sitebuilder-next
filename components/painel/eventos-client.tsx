@@ -123,7 +123,7 @@ function EventModal({
           )}
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label className="block text-sm font-medium text-neutral-600 mb-1.5">
               Nome do evento <span className="text-red-500">*</span>
             </label>
             <input
@@ -137,7 +137,7 @@ function EventModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label className="block text-sm font-medium text-neutral-600 mb-1.5">
               Quando será?
             </label>
             <input
@@ -149,7 +149,7 @@ function EventModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Onde será?</label>
+            <label className="block text-sm font-medium text-neutral-600 mb-1.5">Onde será?</label>
             <input
               type="text"
               value={location}
@@ -160,7 +160,7 @@ function EventModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">Descrição</label>
+            <label className="block text-sm font-medium text-neutral-600 mb-1.5">Descrição</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -171,7 +171,7 @@ function EventModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label className="block text-sm font-medium text-neutral-600 mb-1.5">
               Foto de capa (URL)
             </label>
             <input
@@ -194,7 +194,7 @@ function EventModal({
 
           <div className="flex items-center justify-between py-1">
             <div>
-              <p className="text-sm font-medium text-neutral-700">Abrir inscrições</p>
+              <p className="text-sm font-medium text-neutral-600">Abrir inscrições</p>
               <p className="text-xs text-neutral-500">Permite que visitantes se inscrevam</p>
             </div>
             <button
@@ -334,7 +334,7 @@ export function EventosClient({ events: initial }: EventosClientProps) {
             <Calendar className="w-6 h-6 text-neutral-300" />
           </div>
           <div>
-            <p className="text-sm font-medium text-neutral-700">Nenhum evento criado ainda</p>
+            <p className="text-sm font-medium text-neutral-600">Nenhum evento criado ainda</p>
             <p className="text-xs text-neutral-500 mt-0.5">
               Crie seu primeiro evento para começar a receber inscrições
             </p>

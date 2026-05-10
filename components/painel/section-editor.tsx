@@ -31,7 +31,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-neutral-800">{label}</label>
+      <label className="text-sm font-medium text-neutral-600">{label}</label>
       {children}
       {hint && <p className="text-xs text-neutral-500">{hint}</p>}
     </div>
@@ -150,7 +150,7 @@ function HeroForm({
         />
       </Field>
       <div>
-        <p className="text-sm font-medium text-neutral-800 mb-1.5">Botão de chamada para ação</p>
+        <p className="text-sm font-medium text-neutral-600 mb-1.5">Botão de chamada para ação</p>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Texto do botão">
             <TextInput
@@ -243,7 +243,7 @@ function CardsForm({
       </Field>
 
       <div>
-        <p className="text-sm font-medium text-neutral-800 mb-3">
+        <p className="text-sm font-medium text-neutral-600 mb-3">
           Seus serviços ({cards.length})
         </p>
         <div className="space-y-2">
@@ -609,7 +609,7 @@ function FormSectionForm({
         />
       </Field>
       <div className="space-y-3">
-        <p className="text-sm font-medium text-neutral-800">Links das redes sociais</p>
+        <p className="text-sm font-medium text-neutral-600">Links das redes sociais</p>
         <Field label="Instagram">
           <TextInput
             value={getSocialLink("Instagram")}

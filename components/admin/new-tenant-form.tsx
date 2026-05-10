@@ -129,7 +129,7 @@ export function NewTenantForm() {
             <h2 className="text-sm font-semibold text-neutral-700 mb-4">Dados do cliente</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                   Nome completo <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -142,7 +142,7 @@ export function NewTenantForm() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                   Slug <span className="text-red-500">*</span>
                 </label>
                 <div className="flex">
@@ -161,7 +161,7 @@ export function NewTenantForm() {
                 <p className="text-xs text-neutral-400 mt-1">Usado na URL da API</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                   Domínio <span className="text-neutral-400 font-normal">(opcional)</span>
                 </label>
                 <input
@@ -181,7 +181,7 @@ export function NewTenantForm() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                  <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                     Cor primária
                   </label>
                   <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export function NewTenantForm() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                  <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                     Cor secundária
                   </label>
                   <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export function NewTenantForm() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Fonte</label>
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">Fonte</label>
                 <select
                   value={font}
                   onChange={(e) => setFont(e.target.value)}
@@ -235,7 +235,7 @@ export function NewTenantForm() {
             </p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                   Email de login
                 </label>
                 <input
@@ -247,7 +247,7 @@ export function NewTenantForm() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                <label className="block text-sm font-medium text-neutral-600 mb-1.5">
                   Senha temporária
                 </label>
                 <div className="flex gap-2">

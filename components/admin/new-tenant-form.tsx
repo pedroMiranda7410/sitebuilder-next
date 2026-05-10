@@ -261,7 +261,7 @@ export function NewTenantForm() {
                   <button
                     type="button"
                     onClick={() => setPassword(generatePassword())}
-                    className="inline-flex items-center gap-1.5 px-3 h-9 text-sm border border-neutral-200 rounded-lg text-neutral-600 hover:bg-neutral-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 h-9 text-sm border border-neutral-300 rounded-lg text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     Gerar
@@ -274,7 +274,7 @@ export function NewTenantForm() {
           <div className="flex justify-end gap-3">
             <a
               href="/admin/tenants"
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-800 border border-neutral-300 rounded-lg hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
               Cancelar
             </a>

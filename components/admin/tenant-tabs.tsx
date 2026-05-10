@@ -83,7 +83,7 @@ export function TenantTabs({ sections, events, users, tenantId }: TenantTabsProp
               </div>
               <Link
                 href={`/painel/secoes/${section.id}/edit`}
-                className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:bg-neutral-50 transition-colors"
+                className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-neutral-300 rounded-lg text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
               >
                 <Pencil className="w-3 h-3" />
                 Editar

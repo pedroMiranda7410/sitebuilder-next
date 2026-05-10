@@ -349,7 +349,7 @@ function CardsForm({
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => setEditingIdx(null)}
-              className="flex-1 py-2 text-sm font-medium text-neutral-700 border border-neutral-200 rounded-xl hover:bg-neutral-50 transition-colors"
+              className="flex-1 py-2 text-sm font-medium text-neutral-800 border border-neutral-300 rounded-xl hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
             >
               Cancelar
             </button>

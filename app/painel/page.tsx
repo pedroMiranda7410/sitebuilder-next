@@ -36,7 +36,7 @@ export default async function PainelPage() {
             href={`/api/site/${tenant.slug}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Ver site publicado

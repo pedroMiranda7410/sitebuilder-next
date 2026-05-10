@@ -22,7 +22,7 @@ export default async function TenantsPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/admin/import"
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-neutral-200 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-50 transition-colors"
+            className="inline-flex items-center gap-2 px-3.5 py-2 border border-neutral-300 text-neutral-800 text-sm font-medium rounded-lg hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
           >
             <Upload className="w-3.5 h-3.5" />
             Importar JSON

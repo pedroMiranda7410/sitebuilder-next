@@ -16,6 +16,7 @@ export async function GET(
 
   const service = await prisma.servicePage.findFirst({
     where: { tenantId: tenant.id, slug: params.serviceSlug, visible: true },
+    include: { fields: { orderBy: { position: "asc" } } },
   });
 
   if (!service) {
@@ -27,6 +28,18 @@ export async function GET(
       id: service.id,
       slug: service.slug,
       position: service.position,
+      cover_image_url: service.coverImageUrl,
+      fields: service.fields.map((f) => ({
+        key: f.key,
+        label: f.label,
+        type: f.type,
+        translatable: f.translatable,
+        position: f.position,
+        placeholder: f.placeholder,
+        help_text: f.helpText,
+        required: f.required,
+        options: f.options,
+      })),
       content: service.content,
     },
     { headers: corsHeaders }

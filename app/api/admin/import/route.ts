@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/api-helpers";
 import { importSchema } from "@/lib/validations";
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
       // Sections — idempotent on (tenantId, sectionKey)
       for (let idx = 0; idx < data.sections.length; idx++) {
         const s = data.sections[idx];
-        await tx.section.upsert({
+        const section = await tx.section.upsert({
           where: { tenantId_sectionKey: { tenantId: tenant.id, sectionKey: s.section_key } },
           update: {
             sectionType: s.section_type,
@@ -96,6 +97,36 @@ export async function POST(req: Request) {
             content: (s.content ?? {}) as object,
           },
         });
+
+        // Fields — idempotent on (sectionId, key), never delete existing
+        for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
+          const f = s.fields![fidx];
+          await tx.sectionField.upsert({
+            where: { sectionId_key: { sectionId: section.id, key: f.key } },
+            update: {
+              label: f.label,
+              type: f.type,
+              translatable: f.translatable ?? true,
+              placeholder: f.placeholder ?? null,
+              helpText: f.help_text ?? null,
+              required: f.required ?? false,
+              position: f.position ?? fidx + 1,
+              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+            },
+            create: {
+              sectionId: section.id,
+              key: f.key,
+              label: f.label,
+              type: f.type,
+              translatable: f.translatable ?? true,
+              placeholder: f.placeholder ?? null,
+              helpText: f.help_text ?? null,
+              required: f.required ?? false,
+              position: f.position ?? fidx + 1,
+              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+            },
+          });
+        }
       }
 
       // Events — idempotent on (tenantId, slug)
@@ -135,11 +166,12 @@ export async function POST(req: Request) {
       // Services — idempotent on (tenantId, slug)
       for (let idx = 0; idx < (data.services ?? []).length; idx++) {
         const s = data.services![idx];
-        await tx.servicePage.upsert({
+        const service = await tx.servicePage.upsert({
           where: { tenantId_slug: { tenantId: tenant.id, slug: s.slug } },
           update: {
             position: s.position ?? idx + 1,
             visible: s.visible ?? true,
+            coverImageUrl: s.cover_image_url ?? null,
             content: (s.content ?? {}) as object,
           },
           create: {
@@ -147,9 +179,40 @@ export async function POST(req: Request) {
             slug: s.slug,
             position: s.position ?? idx + 1,
             visible: s.visible ?? true,
+            coverImageUrl: s.cover_image_url ?? null,
             content: (s.content ?? {}) as object,
           },
         });
+
+        // Fields — idempotent on (serviceId, key), never delete existing
+        for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
+          const f = s.fields![fidx];
+          await tx.serviceField.upsert({
+            where: { serviceId_key: { serviceId: service.id, key: f.key } },
+            update: {
+              label: f.label,
+              type: f.type,
+              translatable: f.translatable ?? true,
+              placeholder: f.placeholder ?? null,
+              helpText: f.help_text ?? null,
+              required: f.required ?? false,
+              position: f.position ?? fidx + 1,
+              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+            },
+            create: {
+              serviceId: service.id,
+              key: f.key,
+              label: f.label,
+              type: f.type,
+              translatable: f.translatable ?? true,
+              placeholder: f.placeholder ?? null,
+              helpText: f.help_text ?? null,
+              required: f.required ?? false,
+              position: f.position ?? fidx + 1,
+              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+            },
+          });
+        }
       }
 
       return tenant;

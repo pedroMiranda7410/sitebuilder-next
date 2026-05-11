@@ -15,6 +15,7 @@ export default async function EditSecaoPage({
 
   const section = await prisma.section.findFirst({
     where: { id: params.id, tenantId: session.user.tenantId ?? undefined },
+    include: { fields: { orderBy: { position: "asc" } } },
   });
   if (!section) notFound();
 
@@ -48,6 +49,7 @@ export default async function EditSecaoPage({
         tenantSecondaryColor={tenant?.themeSecondaryColor ?? "#ffffff"}
         tenantFont={tenant?.themeFont ?? "Inter"}
         tenantLanguages={tenant?.languages ?? ["pt"]}
+        sectionFields={section.fields.map((f) => ({ ...f, options: f.options as Record<string, unknown> | null }))}
       />
     </div>
   );

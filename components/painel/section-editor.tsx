@@ -7,10 +7,23 @@ import { TranslatableInput } from "@/components/ui/translatable-input";
 import { TranslatableTextarea } from "@/components/ui/translatable-textarea";
 import { t as tField } from "@/lib/i18n";
 import type { TranslatableField } from "@/lib/i18n";
+import { FieldEditor } from "@/components/field-editor";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+interface SectionFieldDef {
+  key: string;
+  label: string;
+  type: string;
+  translatable: boolean;
+  placeholder?: string | null;
+  helpText?: string | null;
+  required?: boolean;
+  position?: number;
+  options?: Record<string, unknown> | null;
+}
 
 interface SectionEditorProps {
   sectionId: string;
@@ -22,6 +35,7 @@ interface SectionEditorProps {
   tenantFont: string;
   tenantLanguages?: string[];
   saveEndpoint?: string;
+  sectionFields?: SectionFieldDef[];
 }
 
 // Shared props for all section sub-forms
@@ -822,6 +836,7 @@ export function SectionEditor({
   tenantFont,
   tenantLanguages = ["pt"],
   saveEndpoint,
+  sectionFields = [],
 }: SectionEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [previewContent, setPreviewContent] = useState(initialContent);
@@ -861,6 +876,19 @@ export function SectionEditor({
   const formProps: FormProps = { content, onChange: setContent, languages: tenantLanguages };
 
   function renderForm() {
+    // If the section has dynamic fields defined, use FieldEditor
+    if (sectionFields.length > 0) {
+      return (
+        <FieldEditor
+          fields={sectionFields}
+          content={content}
+          languages={tenantLanguages}
+          onChange={(key, value) => setContent((prev) => ({ ...prev, [key]: value }))}
+        />
+      );
+    }
+
+    // Otherwise fall back to hardcoded forms
     switch (sectionType) {
       case "hero":     return <HeroForm {...formProps} />;
       case "cards":    return <CardsForm {...formProps} />;

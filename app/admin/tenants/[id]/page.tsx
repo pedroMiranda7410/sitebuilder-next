@@ -12,7 +12,10 @@ export default async function TenantDetailPage({
   const tenant = await prisma.tenant.findUnique({
     where: { id: params.id },
     include: {
-      sections: { orderBy: { position: "asc" } },
+      sections: {
+        orderBy: { position: "asc" },
+        include: { fields: { orderBy: { position: "asc" } } },
+      },
       events: {
         orderBy: { eventDate: "asc" },
         include: { _count: { select: { signups: true } } },
@@ -140,7 +143,10 @@ export default async function TenantDetailPage({
       {/* Tabs */}
       <TenantTabs
         tenantId={tenant.id}
-        sections={tenant.sections}
+        sections={tenant.sections.map((s) => ({
+          ...s,
+          fields: s.fields.map((f) => ({ ...f, options: f.options as Record<string, unknown> | null })),
+        }))}
         events={tenant.events.map((e) => ({
           ...e,
           eventDate: e.eventDate ? e.eventDate.toISOString() : null,

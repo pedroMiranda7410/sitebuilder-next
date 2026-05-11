@@ -82,6 +82,19 @@ export const importSchema = z.object({
       position: z.number().int().optional(),
       visible: z.boolean().optional(),
       content: z.record(z.string(), z.unknown()).optional(),
+      fields: z.array(
+        z.object({
+          key: z.string().min(1),
+          label: z.string().min(1),
+          type: z.string().min(1),
+          translatable: z.boolean().optional(),
+          placeholder: z.string().optional().nullable(),
+          help_text: z.string().optional().nullable(),
+          required: z.boolean().optional(),
+          position: z.number().int().optional(),
+          options: z.record(z.string(), z.unknown()).optional().nullable(),
+        })
+      ).optional(),
     })
   ),
   events: z
@@ -111,7 +124,21 @@ export const importSchema = z.object({
         slug: z.string().min(1),
         position: z.number().int().optional(),
         visible: z.boolean().optional(),
+        cover_image_url: z.string().optional().nullable(),
         content: z.record(z.string(), z.unknown()).optional(),
+        fields: z.array(
+          z.object({
+            key: z.string().min(1),
+            label: z.string().min(1),
+            type: z.string().min(1),
+            translatable: z.boolean().optional(),
+            placeholder: z.string().optional().nullable(),
+            help_text: z.string().optional().nullable(),
+            required: z.boolean().optional(),
+            position: z.number().int().optional(),
+            options: z.record(z.string(), z.unknown()).optional().nullable(),
+          })
+        ).optional(),
       })
     )
     .optional(),

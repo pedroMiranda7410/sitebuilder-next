@@ -72,19 +72,39 @@ model Tenant {
 }
 
 model Section {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   tenantId    String
   sectionKey  String
   label       String
   sectionType String
+  position    Int            @default(0)
+  visible     Boolean        @default(true)
+  content     Json           @default("{}")
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fields      SectionField[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([tenantId, sectionKey])
+}
+
+model SectionField {
+  id          String   @id @default(cuid())
+  sectionId   String
+  key         String
+  label       String
+  type        String
+  translatable Boolean @default(true)
+  placeholder String?
+  helpText    String?
+  required    Boolean  @default(false)
   position    Int      @default(0)
-  visible     Boolean  @default(true)
-  content     Json     @default("{}")
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  options     Json?
+  section     Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([tenantId, sectionKey])
+  @@unique([sectionId, key])
 }
 
 model SiteEvent {
@@ -129,15 +149,36 @@ model NewsletterSubscriber {
 }
 
 model ServicePage {
-  id        String   @id @default(cuid())
-  tenantId  String
-  slug      String
-  position  Int      @default(0)
-  visible   Boolean  @default(true)
-  content   Json     @default("{}")
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  tenantId      String
+  slug          String
+  position      Int            @default(0)
+  visible       Boolean        @default(true)
+  coverImageUrl String?
+  content       Json           @default("{}")
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fields        ServiceField[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@unique([tenantId, slug])
+}
+
+model ServiceField {
+  id           String      @id @default(cuid())
+  serviceId    String
+  key          String
+  label        String
+  type         String
+  translatable Boolean     @default(true)
+  placeholder  String?
+  helpText     String?
+  required     Boolean     @default(false)
+  position     Int         @default(0)
+  options      Json?
+  service      ServicePage @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@unique([serviceId, key])
 }

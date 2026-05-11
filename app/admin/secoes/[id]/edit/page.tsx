@@ -13,7 +13,10 @@ export default async function AdminEditSecaoPage({
   const session = await auth();
   if (!session || session.user.role !== "admin") redirect("/login");
 
-  const section = await prisma.section.findUnique({ where: { id: params.id } });
+  const section = await prisma.section.findUnique({
+    where: { id: params.id },
+    include: { fields: { orderBy: { position: "asc" } } },
+  });
   if (!section) notFound();
 
   const tenant = await prisma.tenant.findUnique({ where: { id: section.tenantId } });
@@ -45,6 +48,7 @@ export default async function AdminEditSecaoPage({
         tenantFont={tenant?.themeFont ?? "Inter"}
         tenantLanguages={tenant?.languages ?? ["pt"]}
         saveEndpoint={`/api/admin/sections/${section.id}`}
+        sectionFields={section.fields.map((f) => ({ ...f, options: f.options as Record<string, unknown> | null }))}
       />
     </div>
   );

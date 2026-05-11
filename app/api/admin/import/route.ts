@@ -27,8 +27,8 @@ export async function POST(req: Request) {
   const data = parsed.data;
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Tenant — idempotent upsert on slug
+    // ── Phase 1: core entities in a single short transaction ──────────────────
+    const { tenant, sectionIds, serviceIds } = await prisma.$transaction(async (tx) => {
       const t = data.tenant;
       const tenant = await tx.tenant.upsert({
         where: { slug: t.slug },
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // User — idempotent on email
+      // User
       if (data.user) {
         const u = data.user;
         const passwordHash = await hash(u.password, 12);
@@ -75,7 +75,8 @@ export async function POST(req: Request) {
         }
       }
 
-      // Sections — idempotent on (tenantId, sectionKey)
+      // Sections
+      const sectionIds: Array<{ sectionKey: string; id: string }> = [];
       for (let idx = 0; idx < data.sections.length; idx++) {
         const s = data.sections[idx];
         const section = await tx.section.upsert({
@@ -97,39 +98,10 @@ export async function POST(req: Request) {
             content: (s.content ?? {}) as object,
           },
         });
-
-        // Fields — idempotent on (sectionId, key), never delete existing
-        for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
-          const f = s.fields![fidx];
-          await tx.sectionField.upsert({
-            where: { sectionId_key: { sectionId: section.id, key: f.key } },
-            update: {
-              label: f.label,
-              type: f.type,
-              translatable: f.translatable ?? true,
-              placeholder: f.placeholder ?? null,
-              helpText: f.help_text ?? null,
-              required: f.required ?? false,
-              position: f.position ?? fidx + 1,
-              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
-            },
-            create: {
-              sectionId: section.id,
-              key: f.key,
-              label: f.label,
-              type: f.type,
-              translatable: f.translatable ?? true,
-              placeholder: f.placeholder ?? null,
-              helpText: f.help_text ?? null,
-              required: f.required ?? false,
-              position: f.position ?? fidx + 1,
-              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
-            },
-          });
-        }
+        sectionIds.push({ sectionKey: s.section_key, id: section.id });
       }
 
-      // Events — idempotent on (tenantId, slug)
+      // Events
       for (const e of data.events ?? []) {
         await tx.siteEvent.upsert({
           where: { tenantId_slug: { tenantId: tenant.id, slug: e.slug } },
@@ -163,7 +135,8 @@ export async function POST(req: Request) {
         });
       }
 
-      // Services — idempotent on (tenantId, slug)
+      // Services
+      const serviceIds: Array<{ slug: string; id: string }> = [];
       for (let idx = 0; idx < (data.services ?? []).length; idx++) {
         const s = data.services![idx];
         const service = await tx.servicePage.upsert({
@@ -183,43 +156,81 @@ export async function POST(req: Request) {
             content: (s.content ?? {}) as object,
           },
         });
-
-        // Fields — idempotent on (serviceId, key), never delete existing
-        for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
-          const f = s.fields![fidx];
-          await tx.serviceField.upsert({
-            where: { serviceId_key: { serviceId: service.id, key: f.key } },
-            update: {
-              label: f.label,
-              type: f.type,
-              translatable: f.translatable ?? true,
-              placeholder: f.placeholder ?? null,
-              helpText: f.help_text ?? null,
-              required: f.required ?? false,
-              position: f.position ?? fidx + 1,
-              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
-            },
-            create: {
-              serviceId: service.id,
-              key: f.key,
-              label: f.label,
-              type: f.type,
-              translatable: f.translatable ?? true,
-              placeholder: f.placeholder ?? null,
-              helpText: f.help_text ?? null,
-              required: f.required ?? false,
-              position: f.position ?? fidx + 1,
-              options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
-            },
-          });
-        }
+        serviceIds.push({ slug: s.slug, id: service.id });
       }
 
-      return tenant;
+      return { tenant, sectionIds, serviceIds };
     });
 
+    // ── Phase 2: fields — outside transaction to avoid timeout ────────────────
+    for (const s of data.sections) {
+      const sectionId = sectionIds.find((x) => x.sectionKey === s.section_key)?.id;
+      if (!sectionId) continue;
+      for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
+        const f = s.fields![fidx];
+        await prisma.sectionField.upsert({
+          where: { sectionId_key: { sectionId, key: f.key } },
+          update: {
+            label: f.label,
+            type: f.type,
+            translatable: f.translatable ?? true,
+            placeholder: f.placeholder ?? null,
+            helpText: f.help_text ?? null,
+            required: f.required ?? false,
+            position: f.position ?? fidx + 1,
+            options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+          },
+          create: {
+            sectionId,
+            key: f.key,
+            label: f.label,
+            type: f.type,
+            translatable: f.translatable ?? true,
+            placeholder: f.placeholder ?? null,
+            helpText: f.help_text ?? null,
+            required: f.required ?? false,
+            position: f.position ?? fidx + 1,
+            options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+          },
+        });
+      }
+    }
+
+    for (const s of data.services ?? []) {
+      const serviceId = serviceIds.find((x) => x.slug === s.slug)?.id;
+      if (!serviceId) continue;
+      for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
+        const f = s.fields![fidx];
+        await prisma.serviceField.upsert({
+          where: { serviceId_key: { serviceId, key: f.key } },
+          update: {
+            label: f.label,
+            type: f.type,
+            translatable: f.translatable ?? true,
+            placeholder: f.placeholder ?? null,
+            helpText: f.help_text ?? null,
+            required: f.required ?? false,
+            position: f.position ?? fidx + 1,
+            options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+          },
+          create: {
+            serviceId,
+            key: f.key,
+            label: f.label,
+            type: f.type,
+            translatable: f.translatable ?? true,
+            placeholder: f.placeholder ?? null,
+            helpText: f.help_text ?? null,
+            required: f.required ?? false,
+            position: f.position ?? fidx + 1,
+            options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
+          },
+        });
+      }
+    }
+
     return NextResponse.json(
-      { success: true, tenantId: result.id, slug: result.slug },
+      { success: true, tenantId: tenant.id, slug: tenant.slug },
       { status: 201 }
     );
   } catch (err) {

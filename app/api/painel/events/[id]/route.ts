@@ -50,13 +50,14 @@ export async function PATCH(
     );
   }
 
-  const { eventDate, ...rest } = parsed.data;
+  const { eventDate, formSchema, ...rest } = parsed.data;
 
   const updated = await prisma.siteEvent.update({
     where: { id: params.id },
     data: {
       ...rest,
       eventDate: eventDate !== undefined ? (eventDate ? new Date(eventDate) : null) : undefined,
+      ...(formSchema !== undefined ? { formSchema: formSchema as object[] } : {}),
     },
   });
 

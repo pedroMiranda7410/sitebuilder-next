@@ -49,13 +49,14 @@ export async function PATCH(
     );
   }
 
-  const { content, ...rest } = parsed.data;
+  const { cardContent, detailContent, ...rest } = parsed.data;
 
   const updated = await prisma.servicePage.update({
     where: { id: params.id },
     data: {
       ...rest,
-      ...(content !== undefined ? { content: content as object } : {}),
+      ...(cardContent !== undefined ? { cardContent: cardContent as object } : {}),
+      ...(detailContent !== undefined ? { detailContent: detailContent as object } : {}),
     },
   });
 

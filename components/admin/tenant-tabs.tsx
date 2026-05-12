@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Calendar, Eye, EyeOff, GripVertical, Mail, User, Pencil, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, Eye, EyeOff, GripVertical, Mail, User, Pencil, ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -47,10 +47,20 @@ interface TenantUser {
   email: string;
 }
 
+interface ServiceItem {
+  id: string;
+  slug: string;
+  position: number;
+  visible: boolean;
+  hasDetailPage: boolean;
+  cardContent: Record<string, unknown>;
+}
+
 interface TenantTabsProps {
   sections: Section[];
   events: SiteEvent[];
   users: TenantUser[];
+  services: ServiceItem[];
   tenantId: string;
 }
 
@@ -139,14 +149,15 @@ function SectionRow({ section }: { section: Section }) {
   );
 }
 
-export function TenantTabs({ sections, events, users, tenantId }: TenantTabsProps) {
+export function TenantTabs({ sections, events, users, services, tenantId }: TenantTabsProps) {
   return (
     <Tabs.Root defaultValue="sections">
       <Tabs.List className="flex gap-1 border-b border-neutral-200 mb-6">
         {[
-          { value: "sections", label: `Seções (${sections.length})` },
-          { value: "events",   label: `Eventos (${events.length})` },
-          { value: "users",    label: `Usuário` },
+          { value: "sections",  label: `Seções (${sections.length})` },
+          { value: "services",  label: `Serviços (${services.length})` },
+          { value: "events",    label: `Eventos (${events.length})` },
+          { value: "users",     label: `Usuário` },
         ].map((tab) => (
           <Tabs.Trigger
             key={tab.value}
@@ -169,6 +180,64 @@ export function TenantTabs({ sections, events, users, tenantId }: TenantTabsProp
           {sections.map((section) => (
             <SectionRow key={section.id} section={section} />
           ))}
+        </div>
+      </Tabs.Content>
+
+      {/* Services */}
+      <Tabs.Content value="services">
+        <div className="bg-white rounded-xl border border-neutral-200 divide-y divide-neutral-100">
+          {services.length === 0 && (
+            <div className="py-12 text-center text-sm text-neutral-400">
+              Nenhum serviço cadastrado.
+            </div>
+          )}
+          {services.map((service) => {
+            const titleRaw = service.cardContent.title;
+            const title =
+              typeof titleRaw === "string"
+                ? titleRaw
+                : titleRaw && typeof titleRaw === "object"
+                ? ((titleRaw as Record<string, string>).pt ?? (titleRaw as Record<string, string>).en ?? service.slug)
+                : service.slug;
+            const tagRaw = service.cardContent.tag;
+            const tag =
+              typeof tagRaw === "string"
+                ? tagRaw
+                : tagRaw && typeof tagRaw === "object"
+                ? ((tagRaw as Record<string, string>).pt ?? "")
+                : "";
+
+            return (
+              <div
+                key={service.id}
+                className="flex items-center gap-4 px-4 py-3.5 hover:bg-neutral-50/60 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-sm font-semibold text-neutral-500">
+                  {title.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-neutral-900">{title}</p>
+                  <p className="text-xs text-neutral-400">
+                    /{service.slug}{tag ? ` · ${tag}` : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {service.hasDetailPage && (
+                    <Badge variant="default">
+                      <FileText className="w-3 h-3 mr-1" />
+                      Com página
+                    </Badge>
+                  )}
+                  {!service.hasDetailPage && (
+                    <Badge variant="default">Só card</Badge>
+                  )}
+                  <div className={service.visible ? "text-emerald-500" : "text-neutral-300"}>
+                    {service.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Tabs.Content>
 

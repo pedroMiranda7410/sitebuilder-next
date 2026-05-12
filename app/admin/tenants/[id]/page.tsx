@@ -21,6 +21,7 @@ export default async function TenantDetailPage({
         include: { _count: { select: { signups: true } } },
       },
       users: { where: { role: "client" } },
+      services: { orderBy: { position: "asc" } },
       _count: { select: { subscribers: true } },
     },
   });
@@ -92,9 +93,9 @@ export default async function TenantDetailPage({
       <div className="grid grid-cols-4 gap-3 mb-6">
         {[
           { label: "Seções", value: tenant.sections.length },
+          { label: "Serviços", value: tenant.services.length },
           { label: "Eventos", value: tenant.events.length },
           { label: "Inscritos", value: tenant._count.subscribers },
-          { label: "Usuários", value: tenant.users.length },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white rounded-xl border border-neutral-200 px-4 py-3">
             <p className="text-xs text-neutral-400 mb-0.5">{label}</p>
@@ -152,6 +153,14 @@ export default async function TenantDetailPage({
           eventDate: e.eventDate ? e.eventDate.toISOString() : null,
         }))}
         users={tenant.users.map((u) => ({ ...u, email: u.email ?? "" }))}
+        services={tenant.services.map((s) => ({
+          id: s.id,
+          slug: s.slug,
+          position: s.position,
+          visible: s.visible,
+          hasDetailPage: s.hasDetailPage,
+          cardContent: s.cardContent as Record<string, unknown>,
+        }))}
       />
     </div>
   );

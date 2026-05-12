@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   try {
     // ── Phase 1: core entities in a single short transaction ──────────────────
-    const { tenant, sectionIds, serviceIds } = await prisma.$transaction(async (tx) => {
+    const { tenant, sectionIds } = await prisma.$transaction(async (tx) => {
       const t = data.tenant;
       const tenant = await tx.tenant.upsert({
         where: { slug: t.slug },
@@ -112,6 +112,8 @@ export async function POST(req: Request) {
             location: e.location ?? null,
             coverImageUrl: e.cover_image_url ?? null,
             registrationOpen: e.registration_open ?? false,
+            collectSignups: e.collect_signups ?? false,
+            formSchema: (e.form_schema ?? []) as object[],
           },
           create: {
             tenantId: tenant.id,
@@ -122,6 +124,8 @@ export async function POST(req: Request) {
             location: e.location ?? null,
             coverImageUrl: e.cover_image_url ?? null,
             registrationOpen: e.registration_open ?? false,
+            collectSignups: e.collect_signups ?? false,
+            formSchema: (e.form_schema ?? []) as object[],
           },
         });
       }
@@ -136,30 +140,30 @@ export async function POST(req: Request) {
       }
 
       // Services
-      const serviceIds: Array<{ slug: string; id: string }> = [];
       for (let idx = 0; idx < (data.services ?? []).length; idx++) {
         const s = data.services![idx];
-        const service = await tx.servicePage.upsert({
+        await tx.servicePage.upsert({
           where: { tenantId_slug: { tenantId: tenant.id, slug: s.slug } },
           update: {
             position: s.position ?? idx + 1,
             visible: s.visible ?? true,
-            coverImageUrl: s.cover_image_url ?? null,
-            content: (s.content ?? {}) as object,
+            hasDetailPage: s.has_detail_page ?? false,
+            cardContent: (s.card_content ?? {}) as object,
+            detailContent: (s.detail_content ?? {}) as object,
           },
           create: {
             tenantId: tenant.id,
             slug: s.slug,
             position: s.position ?? idx + 1,
             visible: s.visible ?? true,
-            coverImageUrl: s.cover_image_url ?? null,
-            content: (s.content ?? {}) as object,
+            hasDetailPage: s.has_detail_page ?? false,
+            cardContent: (s.card_content ?? {}) as object,
+            detailContent: (s.detail_content ?? {}) as object,
           },
         });
-        serviceIds.push({ slug: s.slug, id: service.id });
       }
 
-      return { tenant, sectionIds, serviceIds };
+      return { tenant, sectionIds };
     });
 
     // ── Phase 2: fields — outside transaction to avoid timeout ────────────────
@@ -182,39 +186,6 @@ export async function POST(req: Request) {
           },
           create: {
             sectionId,
-            key: f.key,
-            label: f.label,
-            type: f.type,
-            translatable: f.translatable ?? true,
-            placeholder: f.placeholder ?? null,
-            helpText: f.help_text ?? null,
-            required: f.required ?? false,
-            position: f.position ?? fidx + 1,
-            options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
-          },
-        });
-      }
-    }
-
-    for (const s of data.services ?? []) {
-      const serviceId = serviceIds.find((x) => x.slug === s.slug)?.id;
-      if (!serviceId) continue;
-      for (let fidx = 0; fidx < (s.fields ?? []).length; fidx++) {
-        const f = s.fields![fidx];
-        await prisma.serviceField.upsert({
-          where: { serviceId_key: { serviceId, key: f.key } },
-          update: {
-            label: f.label,
-            type: f.type,
-            translatable: f.translatable ?? true,
-            placeholder: f.placeholder ?? null,
-            helpText: f.help_text ?? null,
-            required: f.required ?? false,
-            position: f.position ?? fidx + 1,
-            options: f.options != null ? (f.options as Prisma.InputJsonValue) : Prisma.JsonNull,
-          },
-          create: {
-            serviceId,
             key: f.key,
             label: f.label,
             type: f.type,

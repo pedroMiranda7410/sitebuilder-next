@@ -16,31 +16,33 @@ export async function GET(
 
   const service = await prisma.servicePage.findFirst({
     where: { tenantId: tenant.id, slug: params.serviceSlug, visible: true },
-    include: { fields: { orderBy: { position: "asc" } } },
   });
 
   if (!service) {
     return NextResponse.json({ error: "Not found" }, { status: 404, headers: corsHeaders });
   }
 
+  const otherServices = await prisma.servicePage.findMany({
+    where: { tenantId: tenant.id, visible: true, NOT: { id: service.id } },
+    orderBy: { position: "asc" },
+    take: 3,
+    select: { id: true, slug: true, cardContent: true },
+  });
+
   return NextResponse.json(
     {
       id: service.id,
       slug: service.slug,
       position: service.position,
-      cover_image_url: service.coverImageUrl,
-      fields: service.fields.map((f) => ({
-        key: f.key,
-        label: f.label,
-        type: f.type,
-        translatable: f.translatable,
-        position: f.position,
-        placeholder: f.placeholder,
-        help_text: f.helpText,
-        required: f.required,
-        options: f.options,
+      visible: service.visible,
+      hasDetailPage: service.hasDetailPage,
+      cardContent: service.cardContent,
+      detailContent: service.detailContent,
+      otherServices: otherServices.map((s) => ({
+        id: s.id,
+        slug: s.slug,
+        cardContent: s.cardContent,
       })),
-      content: service.content,
     },
     { headers: corsHeaders }
   );

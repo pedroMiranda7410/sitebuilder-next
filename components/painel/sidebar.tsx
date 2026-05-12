@@ -12,11 +12,13 @@ import {
   ExternalLink,
   Menu,
   X,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/painel", label: "Meu Site", icon: LayoutGrid, exact: true },
+  { href: "/painel/servicos", label: "Serviços", icon: Briefcase, exact: false },
   { href: "/painel/eventos", label: "Eventos", icon: Calendar, exact: false },
   { href: "/painel/newsletter", label: "Contatos", icon: Users, exact: false },
   { href: "/painel/configuracoes", label: "Configurações", icon: Settings, exact: false },

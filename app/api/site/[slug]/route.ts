@@ -23,7 +23,6 @@ export async function GET(
       services: {
         where: { visible: true },
         orderBy: { position: "asc" },
-        include: { fields: { orderBy: { position: "asc" } } },
       },
     },
   });
@@ -74,24 +73,17 @@ export async function GET(
         location: e.location,
         cover_image_url: e.coverImageUrl,
         registration_open: e.registrationOpen,
+        collect_signups: e.collectSignups,
+        form_schema: e.formSchema,
       })),
       services: tenant.services.map((s) => ({
         id: s.id,
         slug: s.slug,
         position: s.position,
-        cover_image_url: s.coverImageUrl,
-        fields: s.fields.map((f) => ({
-          key: f.key,
-          label: f.label,
-          type: f.type,
-          translatable: f.translatable,
-          position: f.position,
-          placeholder: f.placeholder,
-          help_text: f.helpText,
-          required: f.required,
-          options: f.options,
-        })),
-        content: s.content,
+        visible: s.visible,
+        hasDetailPage: s.hasDetailPage,
+        cardContent: s.cardContent,
+        detailContent: null,
       })),
     },
     { headers: corsHeaders }

@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { slug, title, description, eventDate, location, coverImageUrl, registrationOpen } =
+  const { slug, title, description, eventDate, location, coverImageUrl, registrationOpen, collectSignups, formSchema } =
     parsed.data;
 
   const existing = await prisma.siteEvent.findUnique({
@@ -65,6 +65,8 @@ export async function POST(req: Request) {
       location: location ?? null,
       coverImageUrl: coverImageUrl ?? null,
       registrationOpen,
+      collectSignups: collectSignups ?? false,
+      formSchema: (formSchema ?? []) as object[],
     },
   });
 

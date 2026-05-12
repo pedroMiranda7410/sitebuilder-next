@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { slug, position, visible, content } = parsed.data;
+  const { slug, position, visible, hasDetailPage, cardContent, detailContent } = parsed.data;
 
   const existing = await prisma.servicePage.findUnique({
     where: { tenantId_slug: { tenantId, slug } },
@@ -54,7 +54,15 @@ export async function POST(req: Request) {
   }
 
   const service = await prisma.servicePage.create({
-    data: { tenantId, slug, position, visible, content: content as object },
+    data: {
+      tenantId,
+      slug,
+      position,
+      visible,
+      hasDetailPage,
+      cardContent: cardContent as object,
+      detailContent: detailContent as object,
+    },
   });
 
   return NextResponse.json(service, { status: 201 });

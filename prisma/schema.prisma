@@ -117,6 +117,8 @@ model SiteEvent {
   location         String?
   coverImageUrl    String?
   registrationOpen Boolean       @default(false)
+  collectSignups   Boolean       @default(false)
+  formSchema       Json          @default("[]")
   signups          EventSignup[]
   tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt        DateTime      @default(now())
@@ -126,14 +128,14 @@ model SiteEvent {
 }
 
 model EventSignup {
-  id           String    @id @default(cuid())
-  eventId      String
-  name         String
-  email        String
-  phone        String?
-  customFields Json      @default("{}")
-  event        SiteEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  createdAt    DateTime  @default(now())
+  id        String    @id @default(cuid())
+  eventId   String
+  name      String?
+  email     String?
+  phone     String?
+  responses Json      @default("{}")
+  event     SiteEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
 }
 
 model NewsletterSubscriber {
@@ -149,36 +151,17 @@ model NewsletterSubscriber {
 }
 
 model ServicePage {
-  id            String         @id @default(cuid())
+  id            String   @id @default(cuid())
   tenantId      String
   slug          String
-  position      Int            @default(0)
-  visible       Boolean        @default(true)
-  coverImageUrl String?
-  content       Json           @default("{}")
-  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  fields        ServiceField[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  position      Int      @default(0)
+  visible       Boolean  @default(true)
+  hasDetailPage Boolean  @default(false)
+  cardContent   Json     @default("{}")
+  detailContent Json     @default("{}")
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([tenantId, slug])
-}
-
-model ServiceField {
-  id           String      @id @default(cuid())
-  serviceId    String
-  key          String
-  label        String
-  type         String
-  translatable Boolean     @default(true)
-  placeholder  String?
-  helpText     String?
-  required     Boolean     @default(false)
-  position     Int         @default(0)
-  options      Json?
-  service      ServicePage @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  @@unique([serviceId, key])
 }

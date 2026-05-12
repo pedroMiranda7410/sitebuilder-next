@@ -24,8 +24,10 @@ export default async function AdminLayout({
         userName={session.user.name ?? ""}
         signOutAction={handleSignOut}
       />
-      <main className="flex-1 ml-60 min-h-screen">
-        <div className="max-w-6xl mx-auto px-8 py-8">{children}</div>
+      {/* Mobile header spacer */}
+      <div className="fixed top-0 left-0 right-0 h-14 z-20 md:hidden" style={{ backgroundColor: "#f8f8f7" }} />
+      <main className="flex-1 min-h-screen ml-0 md:ml-16 lg:ml-60 pt-14 md:pt-0">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">{children}</div>
       </main>
     </div>
   );

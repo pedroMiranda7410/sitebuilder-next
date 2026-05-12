@@ -38,7 +38,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {metrics.map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-white rounded-xl border border-neutral-200 p-5">
             <div className="flex items-center justify-between mb-3">
@@ -69,66 +69,97 @@ export default async function AdminDashboard() {
             Nenhum cliente cadastrado ainda.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-neutral-100">
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400">Cliente</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400">Cadastro</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400">Status</th>
-                <th className="px-6 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-50">
+          <>
+            {/* Mobile card view */}
+            <div className="sm:hidden divide-y divide-neutral-50">
               {recentTenants.map((tenant) => {
                 const initial = tenant.name.charAt(0).toUpperCase();
                 return (
-                  <tr key={tenant.id} className="hover:bg-neutral-50/60 transition-colors">
-                    <td className="px-6 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
-                          style={{ backgroundColor: tenant.themePrimaryColor }}
-                        >
-                          {initial}
-                        </div>
-                        <div>
-                          <p className="font-medium text-neutral-900">{tenant.name}</p>
-                          <p className="text-xs text-neutral-400">/{tenant.slug}</p>
-                        </div>
+                  <div key={tenant.id} className="flex items-center justify-between px-5 py-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
+                        style={{ backgroundColor: tenant.themePrimaryColor }}
+                      >
+                        {initial}
                       </div>
-                    </td>
-                    <td className="px-6 py-3.5 text-neutral-500 text-xs">
-                      {format(new Date(tenant.createdAt), "d MMM yyyy", { locale: ptBR })}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
-                          tenant.active
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-neutral-100 text-neutral-500"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            tenant.active ? "bg-emerald-500" : "bg-neutral-400"
-                          }`}
-                        />
-                        {tenant.active ? "Ativo" : "Inativo"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <Link
-                        href={`/admin/tenants/${tenant.id}`}
-                        className="text-xs font-medium text-neutral-500 hover:text-neutral-900 transition"
-                      >
-                        Ver →
-                      </Link>
-                    </td>
-                  </tr>
+                      <div className="min-w-0">
+                        <p className="font-medium text-neutral-900 text-sm truncate">{tenant.name}</p>
+                        <p className="text-xs text-neutral-400">/{tenant.slug}</p>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/admin/tenants/${tenant.id}`}
+                      className="text-xs font-medium text-neutral-500 hover:text-neutral-900 transition flex-shrink-0 ml-3"
+                    >
+                      Ver →
+                    </Link>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+            {/* Desktop table view */}
+            <table className="hidden sm:table w-full text-sm">
+              <thead>
+                <tr className="border-b border-neutral-100">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400">Cliente</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400">Cadastro</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400">Status</th>
+                  <th className="px-6 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-50">
+                {recentTenants.map((tenant) => {
+                  const initial = tenant.name.charAt(0).toUpperCase();
+                  return (
+                    <tr key={tenant.id} className="hover:bg-neutral-50/60 transition-colors">
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
+                            style={{ backgroundColor: tenant.themePrimaryColor }}
+                          >
+                            {initial}
+                          </div>
+                          <div>
+                            <p className="font-medium text-neutral-900">{tenant.name}</p>
+                            <p className="text-xs text-neutral-400">/{tenant.slug}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3.5 text-neutral-500 text-xs">
+                        {format(new Date(tenant.createdAt), "d MMM yyyy", { locale: ptBR })}
+                      </td>
+                      <td className="px-6 py-3.5">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
+                            tenant.active
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-neutral-100 text-neutral-500"
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              tenant.active ? "bg-emerald-500" : "bg-neutral-400"
+                            }`}
+                          />
+                          {tenant.active ? "Ativo" : "Inativo"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5 text-right">
+                        <Link
+                          href={`/admin/tenants/${tenant.id}`}
+                          className="text-xs font-medium text-neutral-500 hover:text-neutral-900 transition"
+                        >
+                          Ver →
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
     </div>

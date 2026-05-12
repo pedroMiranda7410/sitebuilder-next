@@ -152,7 +152,7 @@ function SectionRow({ section }: { section: Section }) {
 export function TenantTabs({ sections, events, users, services, tenantId }: TenantTabsProps) {
   return (
     <Tabs.Root defaultValue="sections">
-      <Tabs.List className="flex gap-1 border-b border-neutral-200 mb-6">
+      <Tabs.List className="flex gap-1 border-b border-neutral-200 mb-6 overflow-x-auto scrollbar-none -mx-1 px-1">
         {[
           { value: "sections",  label: `Seções (${sections.length})` },
           { value: "services",  label: `Serviços (${services.length})` },
@@ -162,7 +162,7 @@ export function TenantTabs({ sections, events, users, services, tenantId }: Tena
           <Tabs.Trigger
             key={tab.value}
             value={tab.value}
-            className="px-4 py-2.5 text-sm font-medium text-neutral-500 border-b-2 border-transparent -mb-px transition-colors data-[state=active]:text-neutral-900 data-[state=active]:border-neutral-900"
+            className="px-4 py-2.5 text-sm font-medium text-neutral-500 border-b-2 border-transparent -mb-px transition-colors whitespace-nowrap data-[state=active]:text-neutral-900 data-[state=active]:border-neutral-900"
           >
             {tab.label}
           </Tabs.Trigger>

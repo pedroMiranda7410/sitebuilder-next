@@ -121,9 +121,9 @@ export function NewTenantForm() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left + center cols: form */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           {/* Dados do cliente */}
           <div className="bg-white rounded-xl border border-neutral-200 p-5">
             <h2 className="text-sm font-semibold text-neutral-700 mb-4">Dados do cliente</h2>
@@ -299,7 +299,7 @@ export function NewTenantForm() {
         </div>
 
         {/* Right col: live preview */}
-        <div className="col-span-1">
+        <div className="hidden lg:block col-span-1">
           <div className="sticky top-8">
             <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide mb-3">
               Preview ao vivo

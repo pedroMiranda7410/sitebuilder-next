@@ -81,82 +81,134 @@ export function TenantsTable({ tenants }: TenantsTableProps) {
           {search ? "Nenhum resultado para essa busca." : "Nenhum cliente cadastrado."}
         </div>
       ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-100">
-              <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Cliente</th>
-              <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Domínio</th>
-              <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Seções</th>
-              <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Status</th>
-              <th className="px-5 py-3 text-right text-xs font-medium text-neutral-400">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-neutral-50">
+        <>
+          {/* Mobile card list */}
+          <div className="sm:hidden divide-y divide-neutral-50">
             {filtered.map((t) => (
-              <tr key={t.id} className="hover:bg-neutral-50/60 transition-colors">
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
-                      style={{ backgroundColor: t.themePrimaryColor }}
-                    >
-                      {t.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-medium text-neutral-900">{t.name}</p>
-                      <code className="text-[11px] text-neutral-400">/{t.slug}</code>
-                    </div>
+              <div key={t.id} className="px-5 py-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
+                    style={{ backgroundColor: t.themePrimaryColor }}
+                  >
+                    {t.name.charAt(0).toUpperCase()}
                   </div>
-                </td>
-                <td className="px-5 py-3.5 text-neutral-500 text-xs">
-                  {t.domain ?? <span className="text-neutral-300">—</span>}
-                </td>
-                <td className="px-5 py-3.5 text-neutral-600 tabular-nums">{t._count.sections}</td>
-                <td className="px-5 py-3.5">
+                  <div className="min-w-0">
+                    <p className="font-medium text-neutral-900 text-sm truncate">{t.name}</p>
+                    <code className="text-[11px] text-neutral-400">/{t.slug}</code>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => handleToggleActive(t.id, t.active)}
-                    className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full transition-colors ${
+                    className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full transition-colors ${
                       t.active
                         ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                         : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
                     }`}
                   >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${t.active ? "bg-emerald-500" : "bg-neutral-400"}`}
-                    />
+                    <span className={`w-1.5 h-1.5 rounded-full ${t.active ? "bg-emerald-500" : "bg-neutral-400"}`} />
                     {t.active ? "Ativo" : "Inativo"}
                   </button>
-                </td>
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center justify-end gap-1">
-                    <Link
-                      href={`/admin/tenants/${t.id}`}
-                      className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-                      title="Ver detalhes"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </Link>
-                    <Link
-                      href={`/admin/tenants/${t.id}/edit`}
-                      className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-                      title="Editar"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(t.id, t.name)}
-                      disabled={deletingId === t.id}
-                      className="p-1.5 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
-                      title="Deletar"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  <Link
+                    href={`/admin/tenants/${t.id}`}
+                    className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+                    title="Ver detalhes"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(t.id, t.name)}
+                    disabled={deletingId === t.id}
+                    className="p-1.5 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                    title="Deletar"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-neutral-100">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Cliente</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Domínio</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Seções</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-neutral-400">Status</th>
+                  <th className="px-5 py-3 text-right text-xs font-medium text-neutral-400">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-50">
+                {filtered.map((t) => (
+                  <tr key={t.id} className="hover:bg-neutral-50/60 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
+                          style={{ backgroundColor: t.themePrimaryColor }}
+                        >
+                          {t.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-neutral-900">{t.name}</p>
+                          <code className="text-[11px] text-neutral-400">/{t.slug}</code>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-neutral-500 text-xs">
+                      {t.domain ?? <span className="text-neutral-300">—</span>}
+                    </td>
+                    <td className="px-5 py-3.5 text-neutral-600 tabular-nums">{t._count.sections}</td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() => handleToggleActive(t.id, t.active)}
+                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full transition-colors ${
+                          t.active
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${t.active ? "bg-emerald-500" : "bg-neutral-400"}`}
+                        />
+                        {t.active ? "Ativo" : "Inativo"}
+                      </button>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/tenants/${t.id}`}
+                          className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+                          title="Ver detalhes"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          href={`/admin/tenants/${t.id}/edit`}
+                          className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+                          title="Editar"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(t.id, t.name)}
+                          disabled={deletingId === t.id}
+                          className="p-1.5 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                          title="Deletar"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

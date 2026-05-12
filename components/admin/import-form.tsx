@@ -90,7 +90,7 @@ export function ImportForm() {
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-3xl w-full">
       {errors.length > 0 && (
         <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -137,7 +137,7 @@ export function ImportForm() {
             onChange={(e) => setJson(e.target.value)}
             rows={20}
             placeholder={'{\n  "tenant": { ... },\n  "sections": [ ... ]\n}'}
-            className="w-full rounded-lg border border-neutral-200 bg-neutral-950 text-green-400 px-4 py-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 resize-y placeholder:text-neutral-600"
+            className="w-full min-h-[300px] rounded-lg border border-neutral-200 bg-neutral-950 text-green-400 px-4 py-3 font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700 resize-y placeholder:text-neutral-600"
             spellCheck={false}
           />
         </div>
@@ -145,7 +145,7 @@ export function ImportForm() {
         <button
           type="submit"
           disabled={loading || !json.trim()}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-neutral-950 rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium text-white bg-neutral-950 rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40"
         >
           {loading ? (
             <>

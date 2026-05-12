@@ -11,7 +11,7 @@ export default async function TenantsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">Clientes</h1>
           <p className="text-sm text-neutral-500 mt-1">
@@ -19,7 +19,7 @@ export default async function TenantsPage() {
             {tenants.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
             href="/admin/import"
             className="inline-flex items-center gap-2 px-3.5 py-2 border border-neutral-300 text-neutral-800 text-sm font-medium rounded-lg hover:bg-neutral-100 hover:border-neutral-400 transition-colors"

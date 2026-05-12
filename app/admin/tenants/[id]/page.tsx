@@ -40,7 +40,7 @@ export default async function TenantDetailPage({
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
@@ -50,7 +50,7 @@ export default async function TenantDetailPage({
           </div>
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">{tenant.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <code className="text-xs bg-neutral-100 px-2 py-0.5 rounded text-neutral-600">
                 /{tenant.slug}
               </code>
@@ -69,7 +69,7 @@ export default async function TenantDetailPage({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <a
             href={`/api/site/${tenant.slug}`}
             target="_blank"
@@ -77,7 +77,7 @@ export default async function TenantDetailPage({
             className="inline-flex items-center gap-2 px-3.5 py-2 border border-neutral-300 text-neutral-800 text-sm font-medium rounded-lg hover:bg-neutral-100 hover:border-neutral-400 transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            Ver API
+            <span className="hidden sm:inline">Ver API</span>
           </a>
           <Link
             href={`/admin/tenants/${tenant.id}/edit`}
@@ -90,7 +90,7 @@ export default async function TenantDetailPage({
       </div>
 
       {/* Info bar */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Seções", value: tenant.sections.length },
           { label: "Serviços", value: tenant.services.length },

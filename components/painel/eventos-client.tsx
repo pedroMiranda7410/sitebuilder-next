@@ -305,6 +305,7 @@ function FieldModal({
                         />
                       </div>
                       <button
+                        type="button"
                         onClick={() => removeOption(idx)}
                         className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors flex-shrink-0"
                       >
@@ -313,6 +314,7 @@ function FieldModal({
                     </div>
                   ))}
                   <button
+                    type="button"
                     onClick={addOption}
                     className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
                   >
@@ -428,6 +430,7 @@ function FormBuilder({
             {/* Drag/reorder handles */}
             <div className="flex flex-col gap-0.5 flex-shrink-0">
               <button
+                type="button"
                 onClick={() => moveUp(idx)}
                 className="w-5 h-4 flex items-center justify-center text-neutral-300 hover:text-neutral-600 transition-colors disabled:opacity-30"
                 disabled={idx === 0}
@@ -435,6 +438,7 @@ function FormBuilder({
                 ▴
               </button>
               <button
+                type="button"
                 onClick={() => moveDown(idx)}
                 className="w-5 h-4 flex items-center justify-center text-neutral-300 hover:text-neutral-600 transition-colors disabled:opacity-30"
                 disabled={idx === sorted.length - 1}
@@ -462,6 +466,7 @@ function FormBuilder({
 
             <div className="flex items-center gap-1 flex-shrink-0">
               <button
+                type="button"
                 onClick={() => setEditingField(field)}
                 className="p-1.5 text-neutral-400 hover:text-neutral-800 transition-colors"
                 title="Editar campo"
@@ -469,6 +474,7 @@ function FormBuilder({
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={() => removeField(field.id)}
                 className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors"
                 title="Remover campo"
@@ -481,6 +487,7 @@ function FormBuilder({
       })}
 
       <button
+        type="button"
         onClick={() => setShowAdd(true)}
         className="inline-flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-900 transition-colors mt-1"
       >

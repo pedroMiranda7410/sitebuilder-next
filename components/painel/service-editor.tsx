@@ -24,7 +24,7 @@ function getLang(value: unknown, lang: string): string {
   return "";
 }
 
-function setLang(current: unknown, lang: string, newValue: string): LangMap {
+function putLang(current: unknown, lang: string, newValue: string): LangMap {
   const base: LangMap =
     current && typeof current === "object" && !Array.isArray(current)
       ? { ...(current as LangMap) }
@@ -52,6 +52,15 @@ function setStrArr(current: unknown, lang: string, arr: string[]): Record<string
   return base;
 }
 
+const LANG_LABELS: Record<string, string> = {
+  pt: "PT",
+  en: "EN",
+  es: "ES",
+  fr: "FR",
+  de: "DE",
+  it: "IT",
+};
+
 export function ServiceEditor({
   serviceId,
   slug,
@@ -61,7 +70,8 @@ export function ServiceEditor({
   initialDetailContent,
   tenantLanguages,
 }: ServiceEditorProps) {
-  const lang = tenantLanguages[0] ?? "pt";
+  const langs = tenantLanguages.length > 0 ? tenantLanguages : ["pt"];
+  const [lang, setLang] = useState(langs[0]);
   const [activeTab, setActiveTab] = useState<"card" | "detail">("card");
   const [visible, setVisible] = useState(initialVisible);
   const [hasDetailPage, setHasDetailPage] = useState(initialHasDetailPage);
@@ -112,11 +122,11 @@ export function ServiceEditor({
   }
 
   function updateCardLang(key: string, value: string) {
-    updateCard(key, setLang(cardContent[key], lang, value));
+    updateCard(key, putLang(cardContent[key], lang, value));
   }
 
   function updateDetailLang(key: string, value: string) {
-    updateDetail(key, setLang(detailContent[key], lang, value));
+    updateDetail(key, putLang(detailContent[key], lang, value));
   }
 
   async function toggleVisible() {
@@ -221,6 +231,29 @@ export function ServiceEditor({
           )}
         </button>
       </div>
+
+      {/* Language selector */}
+      {langs.length > 1 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-neutral-500 font-medium">Idioma:</span>
+          <div className="flex gap-1">
+            {langs.map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setLang(l)}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+                  lang === l
+                    ? "bg-neutral-900 text-white border-neutral-900"
+                    : "bg-white text-neutral-500 border-neutral-300 hover:border-neutral-400 hover:text-neutral-700"
+                }`}
+              >
+                {LANG_LABELS[l] ?? l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Card Tab */}
       {activeTab === "card" && (
@@ -426,7 +459,7 @@ export function ServiceEditor({
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 const inputCls =
-  "w-full px-3.5 py-2.5 text-sm border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition";
+  "w-full px-3.5 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition";
 
 function Field({
   label,

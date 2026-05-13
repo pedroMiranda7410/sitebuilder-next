@@ -80,6 +80,10 @@ export function ServiceEditor({
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refs always hold the latest value so the debounced save never captures stale state
+  const cardRef = useRef(initialCardContent);
+  const detailRef = useRef(initialDetailContent);
+
   const save = useCallback(
     async (
       patch: Partial<{
@@ -104,21 +108,26 @@ export function ServiceEditor({
     [serviceId]
   );
 
-  function scheduleSave(patch: Parameters<typeof save>[0]) {
+  function scheduleContentSave() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => save(patch), 1500);
+    debounceRef.current = setTimeout(
+      () => save({ cardContent: cardRef.current, detailContent: detailRef.current }),
+      1500
+    );
   }
 
   function updateCard(key: string, value: unknown) {
-    const next = { ...cardContent, [key]: value };
+    const next = { ...cardRef.current, [key]: value };
+    cardRef.current = next;
     setCardContent(next);
-    scheduleSave({ cardContent: next });
+    scheduleContentSave();
   }
 
   function updateDetail(key: string, value: unknown) {
-    const next = { ...detailContent, [key]: value };
+    const next = { ...detailRef.current, [key]: value };
+    detailRef.current = next;
     setDetailContent(next);
-    scheduleSave({ detailContent: next });
+    scheduleContentSave();
   }
 
   function updateCardLang(key: string, value: string) {

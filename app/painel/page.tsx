@@ -7,7 +7,7 @@ export default async function PainelPage() {
   const session = await auth();
   const tenantId = session?.user?.tenantId;
 
-  const [sections, tenant] = await Promise.all([
+  const [sections, tenant, services] = await Promise.all([
     tenantId
       ? prisma.section.findMany({
           where: { tenantId },
@@ -15,12 +15,21 @@ export default async function PainelPage() {
         })
       : [],
     tenantId ? prisma.tenant.findUnique({ where: { id: tenantId } }) : null,
+    tenantId
+      ? prisma.servicePage.findMany({
+          where: { tenantId },
+          orderBy: { position: "asc" },
+          select: { id: true, slug: true, cardContent: true, visible: true },
+        })
+      : [],
   ]);
 
   const sectionsWithContent = sections.map((s) => ({
     ...s,
     content: (s.content ?? {}) as Record<string, unknown>,
   }));
+
+  const serviceMap = Object.fromEntries(services.map((s) => [s.slug, s]));
 
   return (
     <div>
@@ -52,6 +61,7 @@ export default async function PainelPage() {
         <SectionCards
           sections={sectionsWithContent}
           tenantPrimaryColor={tenant?.themePrimaryColor ?? "#000000"}
+          serviceMap={serviceMap}
         />
       )}
     </div>

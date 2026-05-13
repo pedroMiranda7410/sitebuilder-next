@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { GripVertical, Eye, EyeOff, Pencil } from "lucide-react";
+import { GripVertical, Eye, EyeOff, Pencil, Briefcase, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Section {
@@ -126,12 +126,32 @@ function SectionVisualPreview({
   }
 }
 
+interface ServiceSummary {
+  id: string;
+  slug: string;
+  visible: boolean;
+  cardContent: unknown;
+}
+
 interface SectionCardsProps {
   sections: Section[];
   tenantPrimaryColor: string;
+  serviceMap?: Record<string, ServiceSummary>;
 }
 
-export function SectionCards({ sections: initial, tenantPrimaryColor }: SectionCardsProps) {
+function getServiceTitle(cardContent: unknown): string {
+  if (!cardContent || typeof cardContent !== "object") return "(sem título)";
+  const c = cardContent as Record<string, unknown>;
+  const title = c.title;
+  if (typeof title === "string") return title || "(sem título)";
+  if (title && typeof title === "object") {
+    const t = title as Record<string, string>;
+    return t.pt ?? t.en ?? "(sem título)";
+  }
+  return "(sem título)";
+}
+
+export function SectionCards({ sections: initial, tenantPrimaryColor, serviceMap = {} }: SectionCardsProps) {
   const [sections, setSections] = useState(initial);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -176,12 +196,21 @@ export function SectionCards({ sections: initial, tenantPrimaryColor }: SectionC
               <div>
                 <p className="font-semibold text-neutral-900 text-sm leading-tight">{section.label}</p>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  {section.visible ? "Visível no site" : "Oculta do site"}
+                  {section.sectionType === "cards"
+                    ? `${Object.keys(serviceMap).length} serviço(s) cadastrado(s) · gerenciado em Serviços`
+                    : section.sectionType === "service_detail"
+                    ? (() => {
+                        const svc = serviceMap[section.sectionKey];
+                        return svc
+                          ? `Conteúdo do serviço "${getServiceTitle(svc.cardContent)}"`
+                          : "Editado em Serviços";
+                      })()
+                    : section.visible ? "Visível no site" : "Oculta do site"}
                 </p>
               </div>
 
               {/* Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => toggleVisible(section.id, section.visible)}
                   disabled={togglingId === section.id}
@@ -200,13 +229,49 @@ export function SectionCards({ sections: initial, tenantPrimaryColor }: SectionC
                   {section.visible ? "Visível" : "Oculta"}
                 </button>
 
-                <Link
-                  href={`/painel/secoes/${section.id}/edit`}
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-colors whitespace-nowrap"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                  Editar
-                </Link>
+                {section.sectionType === "cards" ? (
+                  /* Cards section → manage via /painel/servicos */
+                  <Link
+                    href="/painel/servicos"
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-colors whitespace-nowrap"
+                  >
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Gerenciar serviços
+                  </Link>
+                ) : section.sectionType === "service_detail" ? (
+                  /* service_detail → link to the matching ServiceEditor */
+                  (() => {
+                    const service = serviceMap[section.sectionKey];
+                    if (service) {
+                      return (
+                        <Link
+                          href={`/painel/servicos/${service.id}/edit`}
+                          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-colors whitespace-nowrap"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          Editar serviço
+                        </Link>
+                      );
+                    }
+                    return (
+                      <Link
+                        href="/painel/servicos"
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg border border-neutral-300 text-neutral-700 hover:bg-neutral-100 transition-colors whitespace-nowrap"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Ver serviços
+                      </Link>
+                    );
+                  })()
+                ) : (
+                  <Link
+                    href={`/painel/secoes/${section.id}/edit`}
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg bg-neutral-950 text-white hover:bg-neutral-800 transition-colors whitespace-nowrap"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </Link>
+                )}
               </div>
             </div>
           </div>

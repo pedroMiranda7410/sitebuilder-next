@@ -87,11 +87,11 @@ export const servicePageSchema = z.object({
     .string()
     .min(1, "Slug obrigatório")
     .regex(/^[a-z0-9-]+$/, "Slug deve conter apenas letras minúsculas, números e hífens"),
-  position: z.number().int().default(0),
-  visible: z.boolean().default(true),
-  hasDetailPage: z.boolean().default(false),
-  cardContent: z.record(z.string(), z.unknown()).default({}),
-  detailContent: z.record(z.string(), z.unknown()).default({}),
+  position: z.number().int().optional(),
+  visible: z.boolean().optional(),
+  hasDetailPage: z.boolean().optional(),
+  cardContent: z.record(z.string(), z.unknown()).optional(),
+  detailContent: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ─── Import schema ────────────────────────────────────────────────────────────

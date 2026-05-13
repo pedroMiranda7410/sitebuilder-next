@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { LayoutGrid, FileText, Eye, EyeOff, Plus, X } from "lucide-react";
+import { LayoutGrid, FileText, Eye, EyeOff, Plus, X, Loader2, Check, AlertCircle } from "lucide-react";
 
 interface ServiceEditorProps {
   serviceId: string;
@@ -14,6 +14,7 @@ interface ServiceEditorProps {
 }
 
 type LangMap = Record<string, string>;
+type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 function getLang(value: unknown, lang: string): string {
   if (!value) return "";
@@ -53,13 +54,37 @@ function setStrArr(current: unknown, lang: string, arr: string[]): Record<string
 }
 
 const LANG_LABELS: Record<string, string> = {
-  pt: "PT",
-  en: "EN",
-  es: "ES",
-  fr: "FR",
-  de: "DE",
-  it: "IT",
+  pt: "PT", en: "EN", es: "ES", fr: "FR", de: "DE", it: "IT",
 };
+
+function SaveButton({
+  status,
+  onSave,
+  dirty,
+}: {
+  status: SaveStatus;
+  onSave: () => void;
+  dirty: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSave}
+      disabled={status === "saving" || !dirty}
+      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl bg-neutral-950 text-white hover:bg-neutral-800 transition-colors disabled:opacity-40"
+    >
+      {status === "saving" ? (
+        <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+      ) : status === "saved" ? (
+        <><Check className="w-4 h-4" /> Salvo</>
+      ) : status === "error" ? (
+        <><AlertCircle className="w-4 h-4" /> Erro — tentar de novo</>
+      ) : (
+        "Salvar"
+      )}
+    </button>
+  );
+}
 
 export function ServiceEditor({
   serviceId,
@@ -75,87 +100,102 @@ export function ServiceEditor({
   const [activeTab, setActiveTab] = useState<"card" | "detail">("card");
   const [visible, setVisible] = useState(initialVisible);
   const [hasDetailPage, setHasDetailPage] = useState(initialHasDetailPage);
-  const [cardContent, setCardContent] = useState(initialCardContent);
-  const [detailContent, setDetailContent] = useState(initialDetailContent);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [toggleStatus, setToggleStatus] = useState<SaveStatus>("idle");
 
-  // Refs always hold the latest value so the debounced save never captures stale state
+  const [cardContent, setCardContent] = useState(initialCardContent);
+  const [cardDirty, setCardDirty] = useState(false);
+  const [cardStatus, setCardStatus] = useState<SaveStatus>("idle");
+
+  const [detailContent, setDetailContent] = useState(initialDetailContent);
+  const [detailDirty, setDetailDirty] = useState(false);
+  const [detailStatus, setDetailStatus] = useState<SaveStatus>("idle");
+
+  // Refs so save callbacks always read current values
   const cardRef = useRef(initialCardContent);
   const detailRef = useRef(initialDetailContent);
 
-  const save = useCallback(
-    async (
-      patch: Partial<{
-        visible: boolean;
-        hasDetailPage: boolean;
-        cardContent: Record<string, unknown>;
-        detailContent: Record<string, unknown>;
-      }>
-    ) => {
-      setSaveStatus("saving");
+  const patch = useCallback(
+    async (data: Record<string, unknown>): Promise<boolean> => {
       try {
         const res = await fetch(`/api/painel/services/${serviceId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(patch),
+          body: JSON.stringify(data),
         });
-        setSaveStatus(res.ok ? "saved" : "error");
+        return res.ok;
       } catch {
-        setSaveStatus("error");
+        return false;
       }
     },
     [serviceId]
   );
 
-  function scheduleContentSave() {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(
-      () => save({ cardContent: cardRef.current, detailContent: detailRef.current }),
-      1500
-    );
-  }
-
   function updateCard(key: string, value: unknown) {
     const next = { ...cardRef.current, [key]: value };
     cardRef.current = next;
     setCardContent(next);
-    scheduleContentSave();
+    setCardDirty(true);
+    setCardStatus("idle");
+  }
+
+  function updateCardLang(key: string, value: string) {
+    updateCard(key, putLang(cardRef.current[key], lang, value));
   }
 
   function updateDetail(key: string, value: unknown) {
     const next = { ...detailRef.current, [key]: value };
     detailRef.current = next;
     setDetailContent(next);
-    scheduleContentSave();
-  }
-
-  function updateCardLang(key: string, value: string) {
-    updateCard(key, putLang(cardContent[key], lang, value));
+    setDetailDirty(true);
+    setDetailStatus("idle");
   }
 
   function updateDetailLang(key: string, value: string) {
-    updateDetail(key, putLang(detailContent[key], lang, value));
+    updateDetail(key, putLang(detailRef.current[key], lang, value));
+  }
+
+  async function saveCard() {
+    setCardStatus("saving");
+    const ok = await patch({ cardContent: cardRef.current });
+    setCardStatus(ok ? "saved" : "error");
+    if (ok) setCardDirty(false);
+  }
+
+  async function saveDetail() {
+    setDetailStatus("saving");
+    const ok = await patch({ detailContent: detailRef.current });
+    setDetailStatus(ok ? "saved" : "error");
+    if (ok) setDetailDirty(false);
   }
 
   async function toggleVisible() {
     const next = !visible;
     setVisible(next);
-    await save({ visible: next });
+    setToggleStatus("saving");
+    const ok = await patch({ visible: next });
+    setToggleStatus(ok ? "saved" : "error");
+    if (!ok) setVisible(!next);
+    setTimeout(() => setToggleStatus("idle"), 2500);
   }
 
   async function toggleHasDetailPage() {
     const next = !hasDetailPage;
     setHasDetailPage(next);
-    if (next && activeTab === "card") setActiveTab("detail");
-    await save({ hasDetailPage: next });
+    setToggleStatus("saving");
+    const ok = await patch({ hasDetailPage: next });
+    setToggleStatus(ok ? "saved" : "error");
+    if (!ok) {
+      setHasDetailPage(!next);
+    } else if (next) {
+      setActiveTab("detail");
+    }
+    setTimeout(() => setToggleStatus("idle"), 2500);
   }
 
   // Benefits helpers
   function getBenefits(): string[] {
     return getStrArr(detailContent.benefits, lang);
   }
-
   function setBenefits(arr: string[]) {
     updateDetail("benefits", setStrArr(detailContent.benefits, lang, arr));
   }
@@ -165,7 +205,6 @@ export function ServiceEditor({
     const g = detailContent.gallery;
     return Array.isArray(g) ? (g as string[]) : [];
   }
-
   function setGallery(arr: string[]) {
     updateDetail("gallery", arr);
   }
@@ -175,8 +214,10 @@ export function ServiceEditor({
       {/* Top controls */}
       <div className="flex flex-wrap items-center gap-3">
         <button
+          type="button"
           onClick={toggleVisible}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-xl border transition-colors ${
+          disabled={toggleStatus === "saving"}
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-xl border transition-colors disabled:opacity-60 ${
             visible
               ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
               : "border-neutral-300 bg-white text-neutral-600 hover:bg-neutral-50"
@@ -186,25 +227,28 @@ export function ServiceEditor({
           {visible ? "Visível" : "Oculto"}
         </button>
 
-        <label className="inline-flex items-center gap-2.5 cursor-pointer">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={hasDetailPage}
-              onChange={toggleHasDetailPage}
-              className="sr-only peer"
-            />
-            <div className="w-10 h-5 bg-neutral-200 rounded-full peer-checked:bg-neutral-900 transition-colors" />
-            <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={toggleHasDetailPage}
+            disabled={toggleStatus === "saving"}
+            className="relative flex-shrink-0 disabled:opacity-60"
+            aria-label="Tem página individual"
+          >
+            <div className={`w-10 h-5 rounded-full transition-colors ${hasDetailPage ? "bg-neutral-900" : "bg-neutral-200"}`} />
+            <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${hasDetailPage ? "translate-x-5" : ""}`} />
+          </button>
           <span className="text-sm font-medium text-neutral-700">Tem página individual</span>
-        </label>
-
-        <div className="ml-auto text-xs text-neutral-400">
-          {saveStatus === "saving" && "Salvando..."}
-          {saveStatus === "saved" && "Salvo"}
-          {saveStatus === "error" && (
-            <span className="text-red-500">Erro ao salvar</span>
+          {toggleStatus === "saving" && (
+            <Loader2 className="w-3.5 h-3.5 text-neutral-400 animate-spin" />
+          )}
+          {toggleStatus === "saved" && (
+            <Check className="w-3.5 h-3.5 text-emerald-500" />
+          )}
+          {toggleStatus === "error" && (
+            <span className="text-xs text-red-500 flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" /> Erro
+            </span>
           )}
         </div>
       </div>
@@ -212,6 +256,7 @@ export function ServiceEditor({
       {/* Tabs */}
       <div className="flex gap-1 border-b border-neutral-200">
         <button
+          type="button"
           onClick={() => setActiveTab("card")}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
             activeTab === "card"
@@ -221,8 +266,10 @@ export function ServiceEditor({
         >
           <LayoutGrid className="w-4 h-4" />
           Card (listagem)
+          {cardDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 ml-0.5" />}
         </button>
         <button
+          type="button"
           onClick={() => hasDetailPage && setActiveTab("detail")}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
             activeTab === "detail"
@@ -238,6 +285,7 @@ export function ServiceEditor({
           {!hasDetailPage && (
             <span className="text-[10px] font-normal text-neutral-400">(desativado)</span>
           )}
+          {hasDetailPage && detailDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 ml-0.5" />}
         </button>
       </div>
 
@@ -334,6 +382,10 @@ export function ServiceEditor({
               </Field>
             </div>
           </div>
+
+          <div className="flex justify-end">
+            <SaveButton status={cardStatus} onSave={saveCard} dirty={cardDirty} />
+          </div>
         </div>
       )}
 
@@ -380,10 +432,7 @@ export function ServiceEditor({
           {/* Benefícios */}
           <Section title="Benefícios">
             <Field label="Lista de benefícios">
-              <BenefitsList
-                items={getBenefits()}
-                onChange={setBenefits}
-              />
+              <BenefitsList items={getBenefits()} onChange={setBenefits} />
             </Field>
           </Section>
 
@@ -412,10 +461,7 @@ export function ServiceEditor({
 
           {/* Galeria */}
           <Section title="Galeria (opcional)">
-            <GalleryEditor
-              items={getGallery()}
-              onChange={setGallery}
-            />
+            <GalleryEditor items={getGallery()} onChange={setGallery} />
           </Section>
 
           {/* CTA */}
@@ -459,6 +505,10 @@ export function ServiceEditor({
               </Field>
             </div>
           </Section>
+
+          <div className="flex justify-end">
+            <SaveButton status={detailStatus} onSave={saveDetail} dirty={detailDirty} />
+          </div>
         </div>
       )}
     </div>
@@ -525,14 +575,6 @@ function BenefitsList({
     onChange(next);
   }
 
-  function remove(idx: number) {
-    onChange(items.filter((_, i) => i !== idx));
-  }
-
-  function add() {
-    onChange([...items, ""]);
-  }
-
   return (
     <div className="space-y-2">
       {items.map((item, idx) => (
@@ -547,7 +589,7 @@ function BenefitsList({
           />
           <button
             type="button"
-            onClick={() => remove(idx)}
+            onClick={() => onChange(items.filter((_, i) => i !== idx))}
             className="p-1.5 text-neutral-400 hover:text-red-500 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -556,7 +598,7 @@ function BenefitsList({
       ))}
       <button
         type="button"
-        onClick={add}
+        onClick={() => onChange([...items, ""])}
         className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors mt-1"
       >
         <Plus className="w-4 h-4" />
@@ -576,14 +618,8 @@ function GalleryEditor({
   const [adding, setAdding] = useState(false);
   const [newUrl, setNewUrl] = useState("");
 
-  function remove(idx: number) {
-    onChange(items.filter((_, i) => i !== idx));
-  }
-
   function confirmAdd() {
-    if (newUrl.trim()) {
-      onChange([...items, newUrl.trim()]);
-    }
+    if (newUrl.trim()) onChange([...items, newUrl.trim()]);
     setNewUrl("");
     setAdding(false);
   }
@@ -601,7 +637,8 @@ function GalleryEditor({
               onError={(e) => (e.currentTarget.style.display = "none")}
             />
             <button
-              onClick={() => remove(idx)}
+              type="button"
+              onClick={() => onChange(items.filter((_, i) => i !== idx))}
               className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <X className="w-3 h-3" />
@@ -623,15 +660,12 @@ function GalleryEditor({
                 if (e.key === "Escape") { setAdding(false); setNewUrl(""); }
               }}
             />
-            <button onClick={confirmAdd} className="text-sm text-neutral-900 font-medium hover:underline">
-              OK
-            </button>
-            <button onClick={() => { setAdding(false); setNewUrl(""); }} className="text-sm text-neutral-400 hover:text-neutral-700">
-              Cancelar
-            </button>
+            <button type="button" onClick={confirmAdd} className="text-sm text-neutral-900 font-medium hover:underline">OK</button>
+            <button type="button" onClick={() => { setAdding(false); setNewUrl(""); }} className="text-sm text-neutral-400 hover:text-neutral-700">Cancelar</button>
           </div>
         ) : (
           <button
+            type="button"
             onClick={() => setAdding(true)}
             className="w-20 h-20 rounded-lg border-2 border-dashed border-neutral-300 flex flex-col items-center justify-center gap-1 text-neutral-400 hover:border-neutral-400 hover:text-neutral-600 transition-colors"
           >

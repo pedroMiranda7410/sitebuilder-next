@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, GripVertical, Pencil, FileText } from "lucide-react";
+import { Eye, EyeOff, GripVertical, Pencil, FileText, Trash2 } from "lucide-react";
 
 interface ServiceItem {
   id: string;
@@ -47,6 +47,7 @@ function getImageUrl(cardContent: Record<string, unknown>): string | null {
 
 export function ServiceList({ initialServices, tenantPrimaryColor }: ServiceListProps) {
   const [services, setServices] = useState(initialServices);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function toggleVisible(id: string, current: boolean) {
     const res = await fetch(`/api/painel/services/${id}`, {
@@ -59,6 +60,16 @@ export function ServiceList({ initialServices, tenantPrimaryColor }: ServiceList
         prev.map((s) => (s.id === id ? { ...s, visible: !current } : s))
       );
     }
+  }
+
+  async function deleteService(id: string, title: string) {
+    if (!confirm(`Excluir "${title}"?\n\nEsta ação não pode ser desfeita.`)) return;
+    setDeletingId(id);
+    const res = await fetch(`/api/painel/services/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setServices((prev) => prev.filter((s) => s.id !== id));
+    }
+    setDeletingId(null);
   }
 
   if (services.length === 0) {
@@ -140,6 +151,14 @@ export function ServiceList({ initialServices, tenantPrimaryColor }: ServiceList
                 <Pencil className="w-3 h-3" />
                 Editar
               </Link>
+              <button
+                onClick={() => deleteService(service.id, title)}
+                disabled={deletingId === service.id}
+                className="p-1.5 rounded-lg text-neutral-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                title="Excluir serviço"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         );
